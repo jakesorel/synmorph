@@ -5,12 +5,8 @@ figures/
 # Stan (statistical computation, MCMC)
 stan_output/
 
-# Symbolic links (could lead to other directories)
+# Symbolic links/shortcuts (could lead to other directories)
 *.lnk
-
-# sandbox/__pycache__/
-# sandbox/plots/
-# sandbox/.ipynb_checkpoints/
 
 # Dask (parallelization)
 dask-worker-space/
