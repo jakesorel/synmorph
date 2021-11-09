@@ -9,7 +9,7 @@ import synmorph.tri_functions as trf
 from synmorph.active_force import ActiveForce
 from synmorph.force import Force
 from synmorph.mesh import Mesh
-
+import synmorph.utils as utils
 
 class Tissue:
     """
