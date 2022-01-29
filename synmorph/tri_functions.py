@@ -238,6 +238,13 @@ def touter(A, B):
 
 
 @jit(nopython=True)
+def tdet(A):
+    a1,a2,a3 = A[:,:,0]
+    b1,b2,b3 = A[:, :, 1]
+    c1,c2,c3 = A[:,:,2]
+    return a1*(b2*c3 - b3*c2) - a2*(b1*c3 - b3*c1) + a3*(b1*c2 - b2* c1)
+
+@jit(nopython=True)
 def tidentity(nv):
     """
     Generate an identity matrix for each element of a triangulation
@@ -265,6 +272,13 @@ def tmatmul(A, B):
     return np.dstack(((AT[0] * BT[0, 0] + AT[1] * BT[1, 0]).T,
                       (AT[0] * BT[0, 1] + AT[1] * BT[1, 1]).T))
 
+@jit(nopython=True)
+def sum_tri(A):
+    return A[:,0] + A[:,1] + A[:,2]
+
+@jit(nopython=True)
+def prod_tri(A):
+    return A[:,0] * A[:,1] * A[:,2]
 
 def assemble_tri(tval, tri):
     """

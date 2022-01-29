@@ -4,10 +4,14 @@ import importlib
 import os
 import pickle
 from datetime import datetime
+import codecs, json
+
 
 import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
+
+from synmorph.utils import *
 
 import synmorph.periodic_functions as per
 import synmorph.sim_plotting as plot
@@ -44,6 +48,9 @@ class Simulation:
         self.simulation_params = simulation_params
         self.save_options = save_options
 
+        if "random_seed" in self.simulation_params:
+            np.random.seed(self.simulation_params["random_seed"])
+
         if tissue is None:
             self.t = Tissue(tissue_params=tissue_params,
                             active_params=active_params,
@@ -58,6 +65,7 @@ class Simulation:
         self.nt = None
         self.nts = None
         self.x_save = None
+        self.tri_save = None
         self.var_save = None
         self.grn = None
 
@@ -100,6 +108,7 @@ class Simulation:
         """
         self.get_t_span()
         self.initialize_x_save()
+        self.initialize_tri_save()
 
     def get_t_span(self):
         """
@@ -118,6 +127,17 @@ class Simulation:
         :return:
         """
         self.x_save = np.zeros(((self.nts,) + self.t.mesh.x.shape))
+
+
+    def initialize_tri_save(self):
+        """
+        Generate an empty array of triangulations for saving (at the times defined by self.t_span_save)
+
+        Of size nts x nv x 3 x 2
+        :return:
+        """
+        self.tri_save = np.zeros(((self.nts,) + self.t.mesh.tri.shape),dtype=np.int64)
+
 
     def simulate(self, progress_bar=True):
         """
@@ -150,6 +170,7 @@ class Simulation:
             if not i % self.tskip:
                 ## for the saving time-points, copy over to x_save (and also var_save)
                 self.x_save[k] = self.t.mesh.x
+                self.tri_save[k] = self.t.mesh.tri
                 if grn:
                     self.var_save[k] = self.grn.var
                 k += 1
@@ -159,12 +180,14 @@ class Simulation:
                                 id={"Date": self.date},
                                 dir_path=self.save_dir_pickled,
                                 compressed=self.save_options["compressed"])
-        if self.save_options[
-            "save"] == "last":  # minimal saving option, as an alternative. Saves the simulation class instantiation to a pickle file. This includes x_save and var_save, so most attributes can be reconstructed for further use (bar the active terms, which are currently not saved).
+        if self.save_options["save"] == "last":  # minimal saving option, as an alternative. Saves the simulation class instantiation to a pickle file. This includes x_save and var_save, so most attributes can be reconstructed for further use (bar the active terms, which are currently not saved).
             self.save(self.name,
                       id=self.id,
                       dir_path=self.save_dir_pickled,
                       compressed=self.save_options["compressed"])
+
+        if self.save_options["save"] == "skeleton":
+            self.save_skeleton(self.name,id=self.id,dir_path=self.save_dir_pickled)
 
     def animate_c_types(self,
                         n_frames=20,
@@ -271,6 +294,34 @@ class Simulation:
             pikd = open(dir_path + "/" + self.name + "_simulation" + '.pickle', 'wb')
             pickle.dump(self.__dict__, pikd)
             pikd.close()
+
+    def save_skeleton(self, name, id=None, dir_path=""):
+        """
+        Save the bare-bones results to a json file
+        :param name:
+        :param id:
+        :param dir_path:
+        :param compressed:
+        :return:
+        """
+        self.name = name
+        if id is None:
+            self.id = {}
+        else:
+            self.id = id
+        skeleton_dict = {"c_types": self.t.c_types.tolist(),
+                         "x_save": self.x_save.tolist(),
+                         "tri_save": self.tri_save.tolist(),
+                         "t_span_save": self.t_span_save.tolist(),
+                         "tissue_params": serialise_dict(self.t.tissue_params),
+                         "active_params": serialise_dict(self.t.active.active_params),
+                         "run_options": self.t.mesh.run_options,
+                         "simulation_params": self.simulation_params,
+                         "L":self.t.mesh.L}
+        json.dump(skeleton_dict, codecs.open(dir_path + "/" + self.name + "_simulation" + '.json', 'w', encoding='utf-8'),
+                  separators=(',', ':'),
+                  sort_keys=True,
+                  indent=4)  ### this saves the array in .json format
 
     def load(self, fname):
         """

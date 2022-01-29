@@ -9,6 +9,7 @@ import synmorph.tri_functions as trf
 from synmorph.active_force import ActiveForce
 from synmorph.force import Force
 from synmorph.mesh import Mesh
+from synmorph import utils
 
 
 class Tissue:
@@ -22,46 +23,50 @@ class Tissue:
 
     """
 
-    def __init__(self, tissue_params, active_params, init_params=None, initialize=True, calc_force=True, meshfile=None,
-                 run_options=None):
+    def __init__(self, tissue_params=None, active_params=None, init_params=None, initialize=True, calc_force=True, meshfile=None,
+                 run_options=None,tissue_file=None):
 
-        assert tissue_params is not None, "Specify tissue params"
-        assert active_params is not None, "Specify active params"
-        assert init_params is not None, "Specify init params"
-        assert run_options is not None, "Specify run options"
+        if tissue_file is None:
+            assert tissue_params is not None, "Specify tissue params"
+            assert active_params is not None, "Specify active params"
+            assert init_params is not None, "Specify init params"
+            assert run_options is not None, "Specify run options"
 
-        self.tissue_params = tissue_params
+            self.tissue_params = tissue_params
 
-        self.init_params = init_params
-        self.mesh = None
+            self.init_params = init_params
+            self.mesh = None
 
-        self.c_types = None
-        self.nc_types = None
-        self.c_typeN = None
-        self.tc_types, self.tc_typesp, self.tc_typesm = None, None, None
+            self.c_types = None
+            self.nc_types = None
+            self.c_typeN = None
+            self.tc_types, self.tc_typesp, self.tc_typesm = None, None, None
 
-        if meshfile is None:
-            assert init_params is not None, "Must provide initialization parameters unless a previous mesh is parsed"
-            if initialize:
-                self.initialize(run_options)
+            if meshfile is None:
+                assert init_params is not None, "Must provide initialization parameters unless a previous mesh is parsed"
+                if initialize:
+                    self.initialize(run_options)
+            else:
+                self.mesh = Mesh(load=meshfile, run_options=run_options)
+                assert self.L == self.mesh.L, "The L provided in the params dict and the mesh file are not the same"
+
+            for par in ["A0", "P0", "kappa_A", "kappa_P"]:
+                self.tissue_params[par] = _vectorify(self.tissue_params[par], self.mesh.n_c)
+
+            self.active = ActiveForce(self, active_params)
+
+            if calc_force:
+                self.get_forces()
+            else:
+                self.F = None
+
+            self.time = None
+
+            self.name = None
+            self.id = None
+
         else:
-            self.mesh = Mesh(load=meshfile, run_options=run_options)
-            assert self.L == self.mesh.L, "The L provided in the params dict and the mesh file are not the same"
-
-        for par in ["A0", "P0", "kappa_A", "kappa_P"]:
-            self.tissue_params[par] = _vectorify(self.tissue_params[par], self.mesh.n_c)
-
-        self.active = ActiveForce(self, active_params)
-
-        if calc_force:
-            self.get_forces()
-        else:
-            self.F = None
-
-        self.time = None
-
-        self.name = None
-        self.id = None
+            self.load(tissue_file)
 
     def set_time(self, time):
         """

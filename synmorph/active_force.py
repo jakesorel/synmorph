@@ -19,6 +19,10 @@ class ActiveForce:
         self.get_active_force()
         if type(self.active_params["v0"]) is float:
             self.active_params["v0"] = self.active_params["v0"] * np.ones(self.t.mesh.n_c)
+        if "angle0" not in self.active_params:
+            self.active_params["angle0"] = 0
+        if "alpha_dir" not in self.active_params:
+            self.active_params["alpha_dir"] = 0
 
     def update_active_param(self, param_name, val):
         self.active_params[param_name] = val
@@ -29,10 +33,17 @@ class ActiveForce:
         :param dt:
         :return:
         """
-        self.orientation = _update_orientation(self.orientation,
-                                               self.active_params["Dr"],
-                                               dt,
-                                               self.t.mesh.n_c)
+        # self.orientation = _update_persistent_random_orientation(self.orientation,
+        #                                                    self.active_params["Dr"],
+        #                                                    dt,
+        #                                                    self.t.mesh.n_c)
+        self.orientation = _update_persistent_directional_orientation(self.orientation,
+                                                           self.active_params["Dr"],
+                                                           dt,
+                                                           self.t.mesh.n_c,
+                                                           self.active_params["alpha_dir"],
+                                                           self.active_params["angle0"],)
+
 
     @property
     def orientation_vector(self):
@@ -64,8 +75,14 @@ def _get_active_force(orientation, v0):
 
 
 @jit(nopython=True)
-def _update_orientation(orientation, Dr, dt, n_c):
-    return orientation + np.random.normal(0, np.sqrt(2 * Dr * dt), n_c)
+def _update_persistent_random_orientation(orientation, Dr, dt, n_c):
+    return (orientation + np.random.normal(0, np.sqrt(2 * Dr * dt), n_c))%(np.pi*2)
+
+@jit(nopython=True)
+def _update_persistent_directional_orientation(orientation, Dr, dt, n_c,alpha_dir,angle0):
+    return (orientation + np.random.normal(0, np.sqrt(2 * Dr * dt), n_c))%(np.pi*2) \
+           - dt*alpha_dir*((orientation-angle0 + np.pi)%(np.pi*2) - np.pi)
+
 
 
 @jit(nopython=True)
