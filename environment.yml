@@ -20,6 +20,7 @@ dependencies:
     - triangle
     - ipywidgets
     - blackcellmagic
+    - networkx[default]
         #   - anyio=3.3.4
         #   - appnope=0.1.2
         #   - argon2-cffi=21.1.0
