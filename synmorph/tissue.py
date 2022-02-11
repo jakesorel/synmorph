@@ -33,6 +33,10 @@ class Tissue:
             assert run_options is not None, "Specify run options"
 
             self.tissue_params = tissue_params
+            
+            # Convert adhesion matrix to numpy array 
+            if "W" in self.tissue_params.keys():
+                self.tissue_params.update({"W": np.asarray(self.tissue_params["W"])})
 
             self.init_params = init_params
             self.mesh = None
