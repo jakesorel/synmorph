@@ -79,28 +79,22 @@ class Simulation:
             self.grn = self.grn(self.t, grn_params)
             self.var_save = np.zeros((self.x_save.shape[0], self.x_save.shape[1], self.grn.nvar))
         ###
-
+        
         self.date = datetime.now().strftime("%m-%d-%Y-%H-%M-%S")
-        self.name = self.save_options["name"] if self.save_options["name"] is not None else self.date
+        self.name = self.date
+        if "name" in self.save_options:
+            if self.save_options["name"] is not None:
+                self.name = self.save_options["name"]
+                
         self.id = {"Date": self.date}
 
         if (self.save_options["result_dir"] is None) or ("result_dir" not in self.save_options):
             self.save_options["result_dir"] = self.date
-
-        if not os.path.exists(self.save_options["result_dir"]):
-            os.mkdir(self.save_options["result_dir"])
-
-        self.save_dir = self.save_options["result_dir"] + "/" + self.name
-        if not os.path.exists(self.save_dir):
-            os.mkdir(self.save_dir)
-
-        self.save_dir_pickled = self.save_options["result_dir"] + "/" + self.name + "/pickled"
-        if not os.path.exists(self.save_dir_pickled):
-            os.mkdir(self.save_dir_pickled)
-
-        self.save_dir_plots = self.save_options["result_dir"] + "/" + self.name + "/plots"
-        if not os.path.exists(self.save_dir_plots):
-            os.mkdir(self.save_dir_plots)
+        
+        # OS-independent pathing to save locations
+        self.save_dir         = os.path.join(self.save_options["result_dir"], self.name)
+        self.save_dir_pickled = os.path.join(self.save_options["result_dir"], self.name, "pickled")
+        self.save_dir_plots   = os.path.join(self.save_options["result_dir"], self.name, "plots")
 
     def initialize(self):
         """
@@ -148,8 +142,9 @@ class Simulation:
         k = 0  ##dummy variable to count the number of saved time-points.
 
         grn = True if self.grn is not None else False  # bool for whether to perform the grn calculation if such a model is specified.
-        saveall = True if self.save_options[
-                              "save"] == "all" else False  # bool for whether to dump all instances of the Tissue class into unique pickle files.
+        save = ""
+        if "save" in self.save_options:
+            save = self.save_options["save"]
 
         def update_with_grn(dt):  # short-hand for updating tissue and grn.
             self.t.update(dt)
@@ -161,6 +156,7 @@ class Simulation:
             iterator = tqdm(range(0, self.nt), ncols=100, desc="Simulation progress")
         else:
             iterator = range(self.nt)
+
         for i in iterator:
             t = self.t_span[i]  # present time-point
             update(dt)  # update the tissue and the grn.
@@ -174,40 +170,52 @@ class Simulation:
                 if grn:
                     self.var_save[k] = self.grn.var
                 k += 1
-                if saveall:  # if saveall is true, then save the corresponding tissue class to a pickle file.
+                if save == "all":  # save the corresponding tissue class to a pickle file.
                     self.t.set_time(t)
                     self.t.save("%s_f%d" % (self.name, i),
                                 id={"Date": self.date},
                                 dir_path=self.save_dir_pickled,
                                 compressed=self.save_options["compressed"])
-        if self.save_options["save"] == "last":  # minimal saving option, as an alternative. Saves the simulation class instantiation to a pickle file. This includes x_save and var_save, so most attributes can be reconstructed for further use (bar the active terms, which are currently not saved).
+
+        if save == "last":  # minimal saving option, as an alternative. Saves the simulation class instantiation to a pickle file. This includes x_save and var_save, so most attributes can be reconstructed for further use (bar the active terms, which are currently not saved).
             self.save(self.name,
                       id=self.id,
                       dir_path=self.save_dir_pickled,
                       compressed=self.save_options["compressed"])
 
-        if self.save_options["save"] == "skeleton":
+        elif save == "skeleton":
             self.save_skeleton(self.name,id=self.id,dir_path=self.save_dir_pickled)
 
-    def animate_c_types(self,
-                        n_frames=20,
-                        c_type_col_map=["#f0a800", "#4287f5"],
-                        file_name=None,
-                        dir_name=None):
+
+    def animate_c_types(
+        self,
+        n_frames=20,
+        c_type_col_map=["#f0a800", "#4287f5"],
+        file_name=None,
+        dir_name=None
+    ):
         """
         Generate an animation for the cell-types. Wrapper for plot.animate
         """
         if dir_name is None:
             dir_name = self.save_dir_plots
+        dir_name = os.path.abspath(dir_name)
+        dir_name = os.makedirs(dir_name, exist_ok=True)
+
         if file_name is None:
             file_name = self.name + "_c_types"
-        plot.animate(self.x_save,
-                     self.t.mesh.L,
-                     plot.generate_ctype_cols(self.t.c_types,
-                                              c_type_col_map=c_type_col_map),
-                     n_frames=n_frames,
-                     file_name=file_name,
-                     dir_name=dir_name)
+        
+        plot.animate(
+            self.x_save,
+            self.t.mesh.L,
+            plot.generate_ctype_cols(
+                self.t.c_types,
+                c_type_col_map=c_type_col_map
+            ),
+            n_frames=n_frames,
+            file_name=file_name,
+            dir_name=dir_name
+         )
 
     def animate_property(self, tissue_property="dA", cmap=plt.cm.plasma, n_frames=20, file_name=None, dir_name=None,
                          vmid=None):
@@ -223,11 +231,16 @@ class Simulation:
         """
         if dir_name is None:
             dir_name = self.save_dir_plots
+        dir_name = os.path.abspath(dir_name)
+        dir_name = os.makedirs(dir_name, exist_ok=True)
+
         if file_name is None:
             file_name = self.name + "_" + tissue_property
+        
         skip = int((self.x_save.shape[0]) / n_frames)
         x_save_plot = self.x_save[::skip]
         prop_val = np.zeros((x_save_plot.shape[0], x_save_plot.shape[1]))
+        
         for i in range(n_frames):
             self.t.update_x_mechanics(x_save_plot[i])
             prop_val[i] = getattr(self.t, tissue_property)
@@ -244,13 +257,21 @@ class Simulation:
             pvmax = vmid + half
             pvmin = vmid - half
         cols = plot.rgba_to_hex(cmap(nprop_val))
-        plot.animate(x_save_plot,
-                     self.t.mesh.L,
-                     cols,
-                     n_frames=n_frames,
-                     file_name=file_name,
-                     dir_name=dir_name,
-                     cbar={"cmap": cmap, "vmin": pvmin, "vmax": pvmax, "label": self.t.get_latex(tissue_property)})
+        
+        plot.animate(
+            x_save_plot,
+            self.t.mesh.L,
+            cols,
+            n_frames=n_frames,
+            file_name=file_name,
+            dir_name=dir_name,
+            cbar={
+                "cmap": cmap, 
+                "vmin": pvmin, 
+                "vmax": pvmax, 
+                "label": self.t.get_latex(tissue_property)
+            }
+        )
 
     def animate_grn(self, vari=0, cmap=plt.cm.plasma, n_frames=20, file_name=None, dir_name=None):
         """
@@ -258,20 +279,33 @@ class Simulation:
         """
         if dir_name is None:
             dir_name = self.save_dir_plots
+        dir_name = os.path.abspath(dir_name)
+        dir_name = os.makedirs(dir_name, exist_ok=True)
+
         if file_name is None:
             file_name = self.name + "_" + "grn" + "_var_%d" % vari
+        
         skip = int((self.x_save.shape[0]) / n_frames)
         x_save_plot = self.x_save[::skip]
         vart = self.var_save[::skip, :, vari]
+        
         nvart = (vart - vart.min()) / (vart.max() - vart.min())
         cols = plot.rgba_to_hex(cmap(nvart))
-        plot.animate(x_save_plot,
-                     self.t.mesh.L,
-                     cols,
-                     n_frames=n_frames,
-                     file_name=file_name,
-                     dir_name=dir_name,
-                     cbar={"cmap": cmap, "vmin": vart.min(), "vmax": vart.max(), "label": "var_%d" % vari})
+        
+        plot.animate(
+            x_save_plot,
+            self.t.mesh.L,
+            cols,
+            n_frames=n_frames,
+            file_name=file_name,
+            dir_name=dir_name,
+            cbar={
+                "cmap": cmap, 
+                "vmin": vart.min(), 
+                "vmax": vart.max(), 
+                "label": "var_%d" % vari
+            }
+        )
 
     def save(self, name, id=None, dir_path="", compressed=False):
         """
@@ -282,18 +316,22 @@ class Simulation:
         :param compressed:
         :return:
         """
+        
+        dir_path = os.path.abspath(dir_path)  # Returns current directory if empty string
+        dir_path = os.makedirs(dir_path, exist_ok=True)  # Makes dir if it doesn't exist
+        fname    = os.path.join(dir_path, self.name + "_simulation")
+
         self.name = name
         if id is None:
             self.id = {}
         else:
             self.id = id
         if compressed:
-            with bz2.BZ2File(dir_path + "/" + self.name + "_simulation" + '.pbz2', 'w') as f:
+            with bz2.BZ2File(fname + '.pbz2', 'w') as f:
                 cPickle.dump(self.__dict__, f)
         else:
-            pikd = open(dir_path + "/" + self.name + "_simulation" + '.pickle', 'wb')
-            pickle.dump(self.__dict__, pikd)
-            pikd.close()
+            with open(fname + '.pickle', 'wb') as pikd:
+                pickle.dump(self.__dict__, pikd)
 
     def save_skeleton(self, name, id=None, dir_path=""):
         """
@@ -304,6 +342,11 @@ class Simulation:
         :param compressed:
         :return:
         """
+        
+        dir_path = os.path.abspath(dir_path)  # Returns current directory if empty string
+        dir_path = os.makedirs(dir_path, exist_ok=True)  # Makes dir if it doesn't exist
+        fname    = os.path.join(dir_path, self.name + "_simulation.json")
+        
         self.name = name
         if id is None:
             self.id = {}
@@ -318,11 +361,17 @@ class Simulation:
                          "run_options": self.t.mesh.run_options,
                          "simulation_params": self.simulation_params,
                          "L":self.t.mesh.L}
-        json.dump(skeleton_dict, codecs.open(dir_path + "/" + self.name + "_simulation" + '.json', 'w', encoding='utf-8'),
-                  separators=(',', ':'),
-                  sort_keys=True,
-                  indent=4)  ### this saves the array in .json format
+        
+        # Save the array in .json format 
+        json.dump(
+            skeleton_dict, 
+            codecs.open(fname, 'w', encoding='utf-8'),
+            separators=(',', ':'),
+            sort_keys=True,
+            indent=4
+        )
 
+    
     def load(self, fname):
         """
         Load an instance of the simulation class.

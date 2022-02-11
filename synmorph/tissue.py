@@ -248,18 +248,24 @@ class Tissue:
             return val
 
     def save(self, name, id=None, dir_path="", compressed=False):
+        
+        dir_path = os.path.abspath(dir_path)  # Returns current directory if empty string
+        dir_path = os.makedirs(dir_path, exist_ok=True)  # Makes dir if it doesn't exist
+        fname    = os.path.join(dir_path, self.name + "_tissue")
+
         self.name = name
+        
         if id is None:
             self.id = {}
         else:
             self.id = id
+        
         if compressed:
-            with bz2.BZ2File(dir_path + "/" + self.name + "_tissue" + '.pbz2', 'w') as f:
+            with bz2.BZ2File(fname + '.pbz2', 'w') as f:
                 cPickle.dump(self.__dict__, f)
         else:
-            pikd = open(dir_path + "/" + self.name + "_tissue" + '.pickle', 'wb')
-            pickle.dump(self.__dict__, pikd)
-            pikd.close()
+            with open(fname + '.pickle', 'wb') as pikd:
+                pickle.dump(self.__dict__, pikd)
 
     def load(self, fname):
         if fname.split(".")[1] == "pbz2":

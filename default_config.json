@@ -41,9 +41,5 @@
         "equi_nkill": 10
     },
     "save_options": {
-        "save": "skeleton",
-        "result_dir": "results",
-        "name": "ctype_example2",
-        "compressed": true
     }
 }
