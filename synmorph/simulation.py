@@ -5,7 +5,7 @@ import os
 import pickle
 from datetime import datetime
 import codecs, json
-
+from copy import deepcopy
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,15 +28,18 @@ class Simulation:
 
     """
 
-    def __init__(self,
-                 tissue=None,
-                 tissue_params=None,
-                 active_params=None,
-                 init_params=None,
-                 simulation_params=None,
-                 grn_params=None,
-                 run_options=None,
-                 save_options=None):
+    def __init__(
+        self,
+        tissue=None,
+        tissue_params=None,
+        active_params=None,
+        init_params=None,
+        simulation_params=None,
+        grn_params=None,
+        run_options=None,
+        save_options=None,
+        **kw
+    ):
 
         assert tissue_params is not None, "Specify tissue params"
         assert active_params is not None, "Specify active params"
@@ -45,17 +48,19 @@ class Simulation:
         assert run_options is not None, "Specify run options"
         assert save_options is not None, "Specify save options"
 
-        self.simulation_params = simulation_params
-        self.save_options = save_options
+        self.simulation_params = deepcopy(simulation_params)
+        self.save_options      = deepcopy(save_options)
 
         if "random_seed" in self.simulation_params:
             np.random.seed(self.simulation_params["random_seed"])
 
         if tissue is None:
-            self.t = Tissue(tissue_params=tissue_params,
-                            active_params=active_params,
-                            init_params=init_params,
-                            run_options=run_options)
+            self.t = Tissue(
+                tissue_params = deepcopy(tissue_params),
+                active_params = deepcopy(active_params),
+                init_params   = deepcopy(init_params),
+                run_options   = deepcopy(run_options),
+            )
         else:
             self.t = tissue
 
@@ -87,9 +92,13 @@ class Simulation:
                 self.name = self.save_options["name"]
                 
         self.id = {"Date": self.date}
-
-        if (self.save_options["result_dir"] is None) or ("result_dir" not in self.save_options):
-            self.save_options["result_dir"] = self.date
+        
+        # Use default result directory name (current date) if absent
+        if "result_dir" not in self.save_options:
+            self.save_options["result_dir"] = self.date    
+        elif self.save_options["result_dir"] is None:
+            self.save_options["result_dir"] = self.date    
+        
         
         # OS-independent pathing to save locations
         self.save_dir         = os.path.join(self.save_options["result_dir"], self.name)
@@ -170,6 +179,7 @@ class Simulation:
                 if grn:
                     self.var_save[k] = self.grn.var
                 k += 1
+                
                 if save == "all":  # save the corresponding tissue class to a pickle file.
                     self.t.set_time(t)
                     self.t.save("%s_f%d" % (self.name, i),
@@ -192,15 +202,17 @@ class Simulation:
         n_frames=20,
         c_type_col_map=["#f0a800", "#4287f5"],
         file_name=None,
-        dir_name=None
+        dir_name=None,
+        **kwargs
     ):
         """
         Generate an animation for the cell-types. Wrapper for plot.animate
         """
+        
         if dir_name is None:
             dir_name = self.save_dir_plots
         dir_name = os.path.abspath(dir_name)
-        dir_name = os.makedirs(dir_name, exist_ok=True)
+        os.makedirs(dir_name, exist_ok=True)
 
         if file_name is None:
             file_name = self.name + "_c_types"
@@ -214,11 +226,20 @@ class Simulation:
             ),
             n_frames=n_frames,
             file_name=file_name,
-            dir_name=dir_name
+            dir_name=dir_name,
+            **kwargs
          )
 
-    def animate_property(self, tissue_property="dA", cmap=plt.cm.plasma, n_frames=20, file_name=None, dir_name=None,
-                         vmid=None):
+    def animate_property(
+        self, 
+        tissue_property="dA", 
+        cmap=plt.cm.plasma, 
+        n_frames=20, 
+        file_name=None, 
+        dir_name=None,
+        vmid=None,
+        **kwargs
+    ):
         """
         Animate a tissue property, defined by the eponymous string. e.g. dA, dP
         :param tissue_property:
@@ -232,7 +253,7 @@ class Simulation:
         if dir_name is None:
             dir_name = self.save_dir_plots
         dir_name = os.path.abspath(dir_name)
-        dir_name = os.makedirs(dir_name, exist_ok=True)
+        os.makedirs(dir_name, exist_ok=True)
 
         if file_name is None:
             file_name = self.name + "_" + tissue_property
@@ -270,17 +291,26 @@ class Simulation:
                 "vmin": pvmin, 
                 "vmax": pvmax, 
                 "label": self.t.get_latex(tissue_property)
-            }
+            },
+            **kwargs
         )
 
-    def animate_grn(self, vari=0, cmap=plt.cm.plasma, n_frames=20, file_name=None, dir_name=None):
+    def animate_grn(
+        self, 
+        vari=0, 
+        cmap=plt.cm.plasma, 
+        n_frames=20, 
+        file_name=None, 
+        dir_name=None,
+        **kwargs
+    ):
         """
         Animate one of the variables in the grn. Which one is defined by vari (an int).
         """
         if dir_name is None:
             dir_name = self.save_dir_plots
         dir_name = os.path.abspath(dir_name)
-        dir_name = os.makedirs(dir_name, exist_ok=True)
+        os.makedirs(dir_name, exist_ok=True)
 
         if file_name is None:
             file_name = self.name + "_" + "grn" + "_var_%d" % vari
@@ -304,7 +334,8 @@ class Simulation:
                 "vmin": vart.min(), 
                 "vmax": vart.max(), 
                 "label": "var_%d" % vari
-            }
+            },
+            **kwargs
         )
 
     def save(self, name, id=None, dir_path="", compressed=False):
@@ -318,7 +349,7 @@ class Simulation:
         """
         
         dir_path = os.path.abspath(dir_path)  # Returns current directory if empty string
-        dir_path = os.makedirs(dir_path, exist_ok=True)  # Makes dir if it doesn't exist
+        os.makedirs(dir_path, exist_ok=True)  # Makes dir if it doesn't exist
         fname    = os.path.join(dir_path, self.name + "_simulation")
 
         self.name = name
@@ -344,7 +375,7 @@ class Simulation:
         """
         
         dir_path = os.path.abspath(dir_path)  # Returns current directory if empty string
-        dir_path = os.makedirs(dir_path, exist_ok=True)  # Makes dir if it doesn't exist
+        os.makedirs(dir_path, exist_ok=True)  # Makes dir if it doesn't exist
         fname    = os.path.join(dir_path, self.name + "_simulation.json")
         
         self.name = name

@@ -174,7 +174,7 @@ def animate(x_save, L, cols, n_frames=100, file_name=None, dir_name="plots", cba
     ax1 = fig.add_subplot(1, 1, 1)
     
     vround = np.vectorize(round)
-    frames = vround(np.linspace(0, x_save.shape[0], n_frames))
+    frames = vround(np.linspace(0, x_save.shape[0] - 1, n_frames))
 
     if cols.shape == x_save.shape[:-1]:
         dynamic_col = True
