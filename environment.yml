@@ -9,6 +9,7 @@ dependencies:
   - scipy=1.*
   - numba
   - matplotlib=3.4.*
+  - h5py=3.*
   - conda-forge::tqdm=4.*
   - conda-forge::imageio-ffmpeg
   - conda-forge::firefox
