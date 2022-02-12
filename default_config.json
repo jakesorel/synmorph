@@ -41,5 +41,12 @@
         "equi_nkill": 10
     },
     "save_options": {
-    }
+    },
+    "n_frames": 75,
+    "fps": 15,
+    "dpi": 300,
+    "c_type_col_map": [
+        "#FFBA40", 
+        "#67F5B5"
+    ]
 }
