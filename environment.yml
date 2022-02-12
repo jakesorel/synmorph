@@ -23,6 +23,7 @@ dependencies:
     - blackcellmagic
     - networkx[default]
     - psutil
+    - GitPython
         #   - anyio=3.3.4
         #   - appnope=0.1.2
         #   - argon2-cffi=21.1.0
