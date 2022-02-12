@@ -153,7 +153,7 @@ def plot_vor(ax, x, L, cols=None, cbar=None, **kwargs):
         cl.set_label(cbar["label"])
 
 
-def animate(x_save, L, cols, n_frames=100, file_name=None, dir_name="plots", cbar=None, **kwargs):
+def animate(x_save, L, cols, n_frames=100, file_name=None, dir_name="plots", cbar=None, fps=15, dpi=264, **kwargs):
     """
     Animate the simulation
 
@@ -172,8 +172,9 @@ def animate(x_save, L, cols, n_frames=100, file_name=None, dir_name="plots", cba
         os.makedirs(dir_name)
     fig = plt.figure()
     ax1 = fig.add_subplot(1, 1, 1)
-
-    skip = int((x_save.shape[0]) / n_frames)
+    
+    vround = np.vectorize(round)
+    frames = vround(np.linspace(0, x_save.shape[0], n_frames))
 
     if cols.shape == x_save.shape[:-1]:
         dynamic_col = True
@@ -190,17 +191,21 @@ def animate(x_save, L, cols, n_frames=100, file_name=None, dir_name="plots", cba
         ax1.cla()
         cbar_a = None
         if dynamic_col:
-            plot_vor(ax1, x_save[skip * i], L, cols[skip * i], cbar=cbar_a, **kwargs)
+            plot_vor(ax1, x_save[frames[i]], L, cols[frames[i]], cbar=cbar_a, **kwargs)
         else:
-            plot_vor(ax1, x_save[skip * i], L, cols, cbar=cbar_a, **kwargs)
+            plot_vor(ax1, x_save[frames[i]], L, cols, cbar=cbar_a, **kwargs)
         ax1.set(aspect=1, xlim=(0, L), ylim=(0, L))
 
-    Writer = animation.writers['ffmpeg']
-    writer = Writer(fps=15, bitrate=1800)
     if file_name is None:
         file_name = "animation %d" % time.time()
+    if not file_name.endswith(".mp4"):
+        file_name += ".mp4"
+    fpath = os.path.join(dir_name, file_name)
+    
+    Writer = animation.writers['ffmpeg']
+    writer = Writer(fps=fps, bitrate=1800)
     an = animation.FuncAnimation(fig, animate, frames=n_frames, interval=200)
-    an.save("%s/%s.mp4" % (dir_name, file_name), writer=writer, dpi=264)
+    an.save(fpath, writer=writer, dpi=dpi)
 
 
 def generate_ctype_cols(c_types, c_type_col_map=["#00c8f0", "#f0a800"]):
