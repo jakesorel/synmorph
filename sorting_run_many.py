@@ -1,10 +1,30 @@
 import os
-from sorting_run_one import ex
 import numpy as np
+from copy import deepcopy
 
-# Run with default configuration
-cfg_updates = dict(
-)
-ex.run(config_updates=cfg_updates)
+from sorting_run_one import ex
+
+
+## Set params values to scan
+#W_vals = [float(v) for v in np.linspace(0.,0.015,3)]
+W_vals = [0.]
+
+# Extract default tissue parameters
+tp = deepcopy(ex.configurations[0]._conf["tissue_params"])
+
+for _wv in W_vals:
+
+    # Make adhesion matrix
+    _w = [[0., _wv], [_wv, 0.]]
+    
+    # Update tissue params dict
+    tp["W"] = _w
+
+    # Run with modified configurations
+    cfg_updates = dict(
+        tissue_params=tp,
+    )
+    ex.run(config_updates=cfg_updates)
+
 
 

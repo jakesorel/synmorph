@@ -1,6 +1,7 @@
 from uuid import uuid4
 import os
 import h5py
+from glob import glob
 
 import synmorph as sm
 
@@ -32,10 +33,17 @@ def do_one_simulation(
     sim = sm.simulation(**cfg)
     
     # Run
-    sim.simulate(progress_bar=True)
+    sim.simulate(progress_bar=False)
 
     if ex is not None:
 
+        # Save any source code dependencies to Sacred
+        source_files = glob(os.path.join("synmorph", "*.py"))
+        source_files = [os.path.abspath(f) for f in source_files]
+        for sf in source_files:
+            ex.add_source_file(sf)
+
+        # Initialize stuff to save
         artifacts = []
 
         # Dump data to file
@@ -75,7 +83,4 @@ def do_one_simulation(
         for _a in artifacts:
             ex.add_artifact(_a)
 
-        # Save any source code dependencies to Sacred
-        source_files = []
-        for sf in source_files:
-            ex.add_source_file(sf)
+
