@@ -1,6 +1,14 @@
 data
 scratch/
 figures/
+results/
+plots/
+
+# Sacred (provenance system for experiments)
+sacred/
+
+# Vim swap files (created during text editing)
+*.swp
 
 # Stan (statistical computation, MCMC)
 stan_output/
@@ -10,7 +18,6 @@ stan_output/
 
 # Dask (parallelization)
 dask-worker-space/
-sandbox/dask-worker-space/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
