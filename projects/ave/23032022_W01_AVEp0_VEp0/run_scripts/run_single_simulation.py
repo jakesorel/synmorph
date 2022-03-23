@@ -32,6 +32,6 @@ if __name__ == "__main__":
     t0 = time.time()
     run_simulation(path_name)
     t1 = time.time()
-    out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt","w+")
+    out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt","a")
     out_file.write("%s_%.2f"%(path_name,(t1-t0)) + "\n")
     out_file.close()
