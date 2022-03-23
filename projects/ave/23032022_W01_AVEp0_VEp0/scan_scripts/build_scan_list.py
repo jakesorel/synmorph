@@ -45,11 +45,11 @@ for i, W01 in enumerate(W01_range):
                 run_options = {"equiangulate": True,
                                "equi_nkill": 10}
                 simulation_params = {"dt": 0.05,
-                                     "tfin": 10,
+                                     "tfin": 300,
                                      "tskip": 10,
                                      "dt_grn": 0.025,
                                      "grn_sim": "grn_ave_couple_orientation",
-                                     "tinit": 2,
+                                     "tinit": 10,
                                      "random_seed": int(seed)}
                 grn_params = {"n_AVE_cells": 20,
                               "AVE_alpha_dir": 0.15,
