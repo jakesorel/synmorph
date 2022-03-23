@@ -25,8 +25,9 @@ def run_simulation(path_name):
     sim.simulate(progress_bar=True)
 
 if __name__ == "__main__":
-    i = int(sys.argv[1])
+    # i = int(sys.argv[1])
     # print(i_start,N)
+    i = 980
     path_names = open("../scan_summary/23032022_W01_AVEp0_VEp0_path_names.txt").readlines()
     path_name = path_names[i].split("\n")[0]
     t0 = time.time()

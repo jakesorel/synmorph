@@ -7,7 +7,7 @@
 #SBATCH --output=../bash_out/output.out
 #SBATCH --error=../bash_out/error.out
 #SBATCH -n 1
-#SBATCH --partition=cpu
+#SBATCH --partition=sb
 #SBATCH --mem=2G
 
 
