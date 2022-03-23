@@ -8,8 +8,8 @@ differential adhesion
 AVE p0
 VE p0 
 """
-N = 3
-N_rep = 2
+N = 12
+N_rep = 6
 W01_range = np.logspace(-3,-1,N)
 AVE_p0_range = np.linspace(3.2,4.2,N)
 VE_p0_range = np.linspace(3.2,4.2,N)
