@@ -8,7 +8,7 @@
 #SBATCH --error=../bash_out/error.out
 #SBATCH -n 1
 #SBATCH --partition=cpu
-#SBATCH --mem=2G
+
 
 eval "$(conda shell.bash hook)"
 source activate synmorph
