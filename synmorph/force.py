@@ -83,8 +83,7 @@ def get_J(W, tc_types, neigh_tctypes, nc_types):
 
 @jit(nopython=True)
 def get_tF(vp1_vm1, v_vm1, v_vp1, v_x, lm1, lp1, Jm, Jp, kappa_A, kappa_P, A0, P0, A, P, tri):
-    dAdv_j = np.dstack(
-        (vp1_vm1[:, :, 1], -vp1_vm1[:, :, 0])) * 0.5  ##shoelace theorem: i.e. derivative of cross product.
+    dAdv_j = np.dstack((vp1_vm1[:, :, 1], -vp1_vm1[:, :, 0])) * 0.5  ##shoelace theorem: i.e. derivative of cross product.
 
     dPdv_j_m = v_vm1 / np.expand_dims(lm1, 2)
     dPdv_j_p = v_vp1 / np.expand_dims(lp1, 2)

@@ -67,6 +67,7 @@ class Simulation:
         self.x_save = None
         self.tri_save = None
         self.var_save = None
+        self.active_save = None
         self.grn = None
 
         self.initialize()
@@ -102,6 +103,10 @@ class Simulation:
         if not os.path.exists(self.save_dir_plots):
             os.mkdir(self.save_dir_plots)
 
+        if "tinit" in self.simulation_params:
+            if self.simulation_params["tinit"] >0:
+                self.passive_initialisation()
+
     def initialize(self):
         """
         Initialize the simulation
@@ -109,6 +114,7 @@ class Simulation:
         self.get_t_span()
         self.initialize_x_save()
         self.initialize_tri_save()
+        self.initialize_active_save()
 
     def get_t_span(self):
         """
@@ -128,6 +134,8 @@ class Simulation:
         """
         self.x_save = np.zeros(((self.nts,) + self.t.mesh.x.shape))
 
+    def initialize_active_save(self):
+        self.active_save = np.zeros(((self.nts,) + self.t.mesh.x.shape))
 
     def initialize_tri_save(self):
         """
@@ -137,6 +145,33 @@ class Simulation:
         :return:
         """
         self.tri_save = np.zeros(((self.nts,) + self.t.mesh.tri.shape),dtype=np.int64)
+
+
+    def passive_initialisation(self,progress_bar=True):
+        """
+        Initialise the mesh without active forces.
+        :return:
+        """
+        dt = self.dt  ##repeatedly called to saved here temporarily.
+        k = 0  ##dummy variable to count the number of saved time-points.
+        v0 = self.t.active.active_params["v0"].copy()
+        self.t.active.active_params["v0"] *= 0
+
+        t_span_init = np.arange(0,self.simulation_params["tinit"],self.dt)
+        nt_init = t_span_init.size
+
+        if progress_bar:  # set up the progress bar if wanted.
+            iterator = tqdm(range(0, nt_init), ncols=100, desc="Initialisation progress")
+        else:
+            iterator = range(nt_init)
+        for i in iterator:
+            t = t_span_init[i]  # present time-point
+            self.t.update(dt)  # update the tissue and the grn.
+            F = self.t.get_forces()  # calculate the forces.
+            self.t.mesh.x += F * dt  # execute the movements.
+            self.t.mesh.x = per.mod2(self.t.mesh.x, self.t.mesh.L, self.t.mesh.L)  # enforce periodicity
+        self.t.active.active_params["v0"] = v0
+
 
 
     def simulate(self, progress_bar=True):
@@ -171,6 +206,7 @@ class Simulation:
                 ## for the saving time-points, copy over to x_save (and also var_save)
                 self.x_save[k] = self.t.mesh.x
                 self.tri_save[k] = self.t.mesh.tri
+                self.active_save[k] = self.t.active.aF
                 if grn:
                     self.var_save[k] = self.grn.var
                 k += 1
@@ -312,6 +348,7 @@ class Simulation:
         skeleton_dict = {"c_types": self.t.c_types.tolist(),
                          "x_save": self.x_save.tolist(),
                          "tri_save": self.tri_save.tolist(),
+                         "active_save":self.active_save.tolist(),
                          "t_span_save": self.t_span_save.tolist(),
                          "tissue_params": serialise_dict(self.t.tissue_params),
                          "active_params": serialise_dict(self.t.active.active_params),
@@ -321,7 +358,8 @@ class Simulation:
         json.dump(skeleton_dict, codecs.open(dir_path + "/" + self.name + "_simulation" + '.json', 'w', encoding='utf-8'),
                   separators=(',', ':'),
                   sort_keys=True,
-                  indent=4)  ### this saves the array in .json format
+                  indent=4)
+        ### this saves the array in .json format
 
     def load(self, fname):
         """

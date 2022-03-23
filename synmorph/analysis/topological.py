@@ -1,7 +1,7 @@
 import numpy as np
 import synmorph.tri_functions as trf
 from numba import jit
-
+from scipy.sparse import coo_matrix
 
 @jit(nopython=True)
 def connected_components(tri, c_types, n_c):
@@ -137,3 +137,18 @@ def get_boundary_entropy(num_in_cluster0=None,num_in_cluster1=None,num_boundary0
     p0 += 1e-19
     p1 += 1e-19
     return -(np.log(p0)*p0).sum(), -(np.log(p1)*p1).sum()
+
+def get_mat_from_tri(tri):
+    dtri_flat, dtrip1_flat = tri.ravel(), trf.roll(tri).ravel()
+    mat = coo_matrix(([1]*len(dtri_flat),(dtri_flat,dtrip1_flat)))
+    return mat
+
+def get_lost_edges(tri0,tri1):
+    tri0mat = get_mat_from_tri(tri0)
+    tri1mat = get_mat_from_tri(tri1)
+    lost_edges = np.array((tri0mat > tri1mat).nonzero()).T
+    if lost_edges.size != 0:
+        lost_edges = lost_edges[lost_edges[:,0]<lost_edges[:,1]]
+        return lost_edges
+    else:
+        return None
