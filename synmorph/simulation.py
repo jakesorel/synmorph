@@ -187,8 +187,8 @@ class Simulation:
                               "save"] == "all" else False  # bool for whether to dump all instances of the Tissue class into unique pickle files.
 
         def update_with_grn(dt):  # short-hand for updating tissue and grn.
-            self.t.update(dt)
             self.grn.update_grn(dt, self.simulation_params["dt_grn"])
+            self.t.update(dt)
 
         update = update_with_grn if grn else self.t.update  # define the update rule depending on whether the grn has been specified or not.
 

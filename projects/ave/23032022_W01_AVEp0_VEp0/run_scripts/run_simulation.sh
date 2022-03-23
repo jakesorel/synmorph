@@ -2,7 +2,7 @@
 
 #Submit this script with: sbatch thefilename
 
-#SBATCH --time=0:15:00   # walltime
+#SBATCH --time=0:45:00   # walltime
 #SBATCH -J "AVE_simulations"   # job name
 #SBATCH --output=../bash_out/output.out
 #SBATCH --error=../bash_out/error.out
