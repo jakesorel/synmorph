@@ -1,5 +1,10 @@
-import synmorph as sm
 import sys
+import os
+
+SCRIPT_DIR = "../../../../"
+sys.path.append(os.path.dirname(SCRIPT_DIR))
+
+import synmorph as sm
 import pickle
 import time
 
