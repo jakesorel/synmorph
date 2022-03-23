@@ -1,12 +1,14 @@
 import synmorph as sm
 import sys
 import pickle
+import time
 
 def run_simulation(path_name):
     pikd = open("../%s"%path_name, 'rb')
     scan_dict = pickle.load(pikd)
     pikd.close()
 
+    print(scan_dict)
     sim = sm.simulation(tissue_params=scan_dict["tissue_params"],
                         active_params=scan_dict["active_params"],
                         init_params=scan_dict["init_params"],
@@ -18,6 +20,13 @@ def run_simulation(path_name):
     sim.simulate(progress_bar=True)
 
 if __name__ == "__main__":
-    path_name = sys.argv[0]
+    i = int(sys.argv[1])
+    # print(i_start,N)
+    path_names = open("../scan_summary/23032022_W01_AVEp0_VEp0_path_names.txt").readlines()
+    path_name = path_names[i]
+    t0 = time.time()
     run_simulation(path_name)
-    # path_name = "scan_dicts/23032022_W01_AVEp0_VEp0_0.pickle"
+    t1 = time.time()
+    out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt","w+")
+    out_file.write("%s_%.2f"%(path_name,(t1-t0)) + "\n")
+    out_file.close()

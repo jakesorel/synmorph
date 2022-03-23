@@ -51,7 +51,7 @@ init_params = {"init_noise": 0.1,
 run_options = {"equiangulate": True,
                "equi_nkill": 10}
 simulation_params = {"dt": 0.05,
-                     "tfin": 20,
+                     "tfin": 300,
                      "tskip": 10,
                      "dt_grn": 0.025,
                      "grn_sim": "grn_ave_couple_orientation",
@@ -83,7 +83,7 @@ sim = sm.simulation(tissue_params=tissue_params,
 sim.simulate(progress_bar=True)
 
 sim.animate_c_types(n_frames=20,
-                    c_type_col_map=["#108c00", "#fa2111","blue","grey"],
+                    c_type_col_map=["#4bdb71", "#ffbb4d","#ffbb4d","white"],
                     file_name="spontaneous2")
 
 fig, ax = plt.subplots()

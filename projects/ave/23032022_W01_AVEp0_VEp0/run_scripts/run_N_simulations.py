@@ -26,8 +26,10 @@ if __name__ == "__main__":
     # print(sys.argv[1],sys.argv[2])
     i_start,N = int(sys.argv[1]),int(sys.argv[2])
     i_start*=N
-    print(i_start,N)
+    # print(i_start,N)
     path_names = open("../scan_summary/23032022_W01_AVEp0_VEp0_path_names.txt").readlines()
     path_names = path_names[i_start:i_start+N]
+    # print(path_names)
     for path_name in path_names:
-        run_simulation(path_name.strip("\n"))
+        print(path_name)
+        # run_simulation(path_name.strip("\n"))

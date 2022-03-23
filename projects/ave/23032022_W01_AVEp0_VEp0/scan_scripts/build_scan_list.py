@@ -8,8 +8,8 @@ differential adhesion
 AVE p0
 VE p0 
 """
-N = 12
-N_rep = 6
+N = 3
+N_rep = 2
 W01_range = np.logspace(-3,-1,N)
 AVE_p0_range = np.linspace(3.2,4.2,N)
 VE_p0_range = np.linspace(3.2,4.2,N)
@@ -45,11 +45,11 @@ for i, W01 in enumerate(W01_range):
                 run_options = {"equiangulate": True,
                                "equi_nkill": 10}
                 simulation_params = {"dt": 0.05,
-                                     "tfin": 300,
+                                     "tfin": 10,
                                      "tskip": 10,
                                      "dt_grn": 0.025,
                                      "grn_sim": "grn_ave_couple_orientation",
-                                     "tinit": 10,
+                                     "tinit": 2,
                                      "random_seed": int(seed)}
                 grn_params = {"n_AVE_cells": 20,
                               "AVE_alpha_dir": 0.15,

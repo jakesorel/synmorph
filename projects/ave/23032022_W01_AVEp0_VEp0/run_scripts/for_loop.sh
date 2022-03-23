@@ -7,6 +7,6 @@
 
 for i in $(seq 0 $(($Njob-1)))
 do
-#    ./run_simulations.sh "$i" "$Nper"
-    sbatch run_simulations.sh "$i" "$Nper"
+    ./run_simulations.sh "$i" "$Nper"
+#    sbatch run_simulations.sh "$i" "$Nper"
 done
