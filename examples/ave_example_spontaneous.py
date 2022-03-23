@@ -67,7 +67,7 @@ grn_params = {"n_AVE_cells":20,
               "AVE_A0":0.7,
               "exe_frac":0.0,
               "AVE_p0":3.6,
-              "nonAVE_p0":4.2}
+              "nonAVE_p0":3.6}
 save_options = {"save": "skeleton",
                 "result_dir": "results",
                 "name": "AVE_example2",
