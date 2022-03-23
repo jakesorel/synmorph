@@ -8,12 +8,13 @@ differential adhesion
 AVE p0
 VE p0 
 """
-N = 2
-N_rep = 2
+N = 12
+N_rep = 6
 W01_range = np.logspace(-3,-1,N)
 AVE_p0_range = np.linspace(3.2,4.2,N)
 VE_p0_range = np.linspace(3.2,4.2,N)
 seed_range = 2022 + np.arange(N_rep,dtype=int)
+print(N**3*N_rep)
 
 base_name = "23032022_W01_AVEp0_VEp0"
 

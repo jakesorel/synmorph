@@ -4,7 +4,7 @@
 
 #SBATCH --time=1:00:00   # walltime
 #SBATCH --ntasks=1   # number of processor cores (i.e. tasks)
-#SBATCH -J "AV_jakecs"   # job name
+#SBATCH -J "AVE_simulations"   # job name
 #SBATCH --output=../bash_out/output.out
 #SBATCH --error=../bash_out/error.out
 
