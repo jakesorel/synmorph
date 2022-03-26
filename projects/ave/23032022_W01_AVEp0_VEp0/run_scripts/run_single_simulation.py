@@ -31,7 +31,7 @@ if __name__ == "__main__":
     path_name = path_names[i].split("\n")[0]
     out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt")
     out_file_lines = out_file.readlines()
-    if any([path_name in o for o in out_file_lines]):
+    if not any([path_name in o for o in out_file_lines]):
         t0 = time.time()
         run_simulation(path_name)
         t1 = time.time()
