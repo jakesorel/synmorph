@@ -445,3 +445,4 @@ def tri_angles_periodic(x, tri, L):
     cos_Angles = (b2 + c2 - a2) / (2 * np.sqrt(b2) * np.sqrt(c2))
     Angles = np.arccos(cos_Angles)
     return Angles
+
