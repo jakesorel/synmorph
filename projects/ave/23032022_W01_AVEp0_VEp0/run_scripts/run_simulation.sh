@@ -14,12 +14,7 @@
 eval "$(conda shell.bash hook)"
 source activate synmorph
 
-
-timeout 1h srun python run_single_simulation.py "$1"
-if [[ $? -eq 124 ]]; then
-  sbatch run_simulation.sh
-fi
-
+python run_single_simulation.py "$1"
 
 
 ((jp1 = "$1" + 1))
