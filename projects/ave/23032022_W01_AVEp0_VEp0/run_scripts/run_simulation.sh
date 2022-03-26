@@ -2,7 +2,7 @@
 
 #Submit this script with: sbatch thefilename
 
-#SBATCH --time=4:50:00   # walltime
+#SBATCH --time=1:10:00   # walltime
 #SBATCH -J "AVE_simulations"   # job name
 #SBATCH --output=../bash_out/output.out
 #SBATCH --error=../bash_out/error.out
@@ -13,7 +13,13 @@
 
 eval "$(conda shell.bash hook)"
 source activate synmorph
-python run_single_simulation.py "$1"
+
+
+timeout 1h srun python run_single_simulation.py "$1"
+if [[ $? -eq 124 ]]; then
+  sbatch run_simulation.sh
+fi
+
 
 
 ((jp1 = "$1" + 1))
@@ -22,4 +28,3 @@ if [[ "$1" -lt "$2" ]]
 then
     sbatch run_simulation.sh "$jp1" "$2"
 fi
-
