@@ -101,5 +101,5 @@ if __name__ == "__main__":
     i = int(sys.argv[1])
     path_names = open("../scan_summary/23032022_W01_AVEp0_VEp0_path_names.txt").readlines()
     path_name = path_names[i].split("\n")[0]
-    sim_name = path_name.split(".pickle")[0]
+    sim_name = path_name.split(".pickle")[0].split("scan_dicts/")[1]
     run(sim_name)
