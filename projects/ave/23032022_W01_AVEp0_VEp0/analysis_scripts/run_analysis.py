@@ -75,7 +75,14 @@ def run(sim_name):
     def append_NaN(x):
         return np.concatenate((x,(np.nan,)))
 
-    df = pd.DataFrame({"t":t,"av_AVE_x":av_AVE_x[:,0],"av_AVE_y":av_AVE_x[:,1],"av_av_AVE_d":av_AVE_d,
+
+    grn_params = scan_dict["grn_params"]
+    AVE_p0 = np.repeat(grn_params["AVE_p0"],len(AVE_x[:,0]))
+    VE_p0 = np.repeat(grn_params["nonAVE_p0"],len(AVE_x[:,0]))
+    W01 = np.repeat(scan_dict["tissue_params"]["W"][0,1],len(AVE_x[:,0]))
+
+    df = pd.DataFrame({"t":t,"PARAM_AVE_p0":AVE_p0,"PARAM_VE_p0":VE_p0,"PARAM_W01":W01,
+                       "v_AVE_x":av_AVE_x[:,0],"av_AVE_y":av_AVE_x[:,1],"av_av_AVE_d":av_AVE_d,
                        "av_AVE_vx":append_NaN(av_AVE_v[:,0]),"av_AVE_vy":append_NaN(av_AVE_v[:,1]),
                        "av_AVE_speed":append_NaN(av_AVE_speed),"bulk_AVE_speed":append_NaN(bulk_AVE_speed),
                        "average_P_AVE":average_P[:,0],"average_P_VE":average_P[:,1],
