@@ -12,9 +12,11 @@
 
 ((j = "$2"*"$1"))
 ((terminate = "$2"*"$1" + "$2"))
+eval "$(conda shell.bash hook)"
+source activate synmorph
 
 for i in $(seq 0 "$2")
 do
     ((j = "$2"*"$1" + "$i"))
-  sbatch run_analysis.sh "$j"
+  python ../analysis_scripts/run_analysis.py "$1"
 done
