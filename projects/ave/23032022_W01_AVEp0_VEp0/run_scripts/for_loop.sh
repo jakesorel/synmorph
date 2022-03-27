@@ -18,6 +18,7 @@ do
 
   sbatch --array [0-"$Nperm1"] run_simulation.sh "$i" "$Nper"
 done
+
 #
 #((Nfull = "$1"*"$1"*"$1"*"$2"))
 #((Nper = "$1"*"$2"))
