@@ -98,7 +98,8 @@ def run(sim_name):
     df.to_csv("../analysis_results/all/%s_analysis.csv"%(sim_name),index=None)
 
 if __name__ == "__main__":
-    i = int(sys.argv[1])
+    # i = int(sys.argv[1])
+    i = int(sys.getenv('SLURM_ARRAY_TASK_ID'))
     path_names = open("../scan_summary/23032022_W01_AVEp0_VEp0_path_names.txt").readlines()
     path_name = path_names[i].split("\n")[0]
     out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt")
