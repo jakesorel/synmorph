@@ -11,7 +11,7 @@ echo "$Nmfullm1"
 
 echo [0-"$Nfullm1"]
 
-sbatch --array [0-100] run_analysis.sh
+sbatch --array [0-"$Nfullm1"]%500 run_analysis.sh
 
 #$ sbatch --array [1-Nfullm1] testarray.sh
 
