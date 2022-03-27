@@ -7,6 +7,10 @@
 
 #rm ../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt
 
+echo "$Nmfullm1"
+
+echo [0-"$Nfullm1"]
+
 sbatch --array [0-"$Nfullm1"] run_analysis.sh
 
 #$ sbatch --array [1-Nfullm1] testarray.sh
