@@ -5,11 +5,10 @@ import os
 SCRIPT_DIR = "../../../../"
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
-import synmorph as sm
 import pickle
 import time
 
-def run_simulation(path_name):
+def run_simulation(path_name,sm):
     pikd = open("../%s"%path_name, 'rb')
     scan_dict = pickle.load(pikd)
     pikd.close()
@@ -33,8 +32,9 @@ if __name__ == "__main__":
     out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt")
     out_file_lines = out_file.readlines()
     if not any([path_name in o for o in out_file_lines]):
+        import synmorph as sm
         t0 = time.time()
-        run_simulation(path_name)
+        run_simulation(path_name,sm)
         t1 = time.time()
         print(t1-t0)
         out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt","a")
