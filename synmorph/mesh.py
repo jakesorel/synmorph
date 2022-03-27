@@ -258,7 +258,7 @@ def disp32(x, y, L):
     return per.per3(x - np.expand_dims(y, 1), L, L)
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=True)
 def get_k2(tri, neigh):
     """
     To determine whether a given neighbouring pair of triangles needs to be re-triangulated, one considers the sum of

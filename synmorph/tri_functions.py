@@ -59,7 +59,7 @@ def make_y(x, Lgrid_xy):
     return y
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=True)
 def tnorm(x):
     """
     Calculate the L1 norm of a set of vectors that are given in triangulated form:
@@ -122,7 +122,7 @@ def tri_mat_call(mat, tri, direc=-1):
     return tmat
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=True)
 def roll(x, direc=1):
     """
     Jitted equivalent to np.roll(x,-direc,axis=1)
@@ -164,7 +164,7 @@ def CV_matrix(tri_list, n_v, n_c):
     return CV_matrix
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=True)
 def tri_sum(n_c, CV_matrix, tval):
     val_sum = np.zeros(n_c)
     for i in range(3):
@@ -330,7 +330,7 @@ def repeat_vec(A):
     return np.dstack((A, A))
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=True)
 def circumcenter(C, L):
     """
     Find the circumcentre (i.e. vertex position) of each triangle in the triangulation.
@@ -415,7 +415,7 @@ def get_neighbours(tri, neigh=None, Range=None):
     return neigh
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=True)
 def tri_angles_periodic(x, tri, L):
     """
     Same as **tri_angles** apart from accounts for periodic triangulation (i.e. the **L**)
