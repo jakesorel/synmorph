@@ -4,14 +4,17 @@
 ((Nfullm1 = "$Nfull" - 1))
 ((Nper = "$1"*"$2"))
 ((Njob = "$1"*"$1"))
+((Njobm1 = "$1"*"$1"-1))
 
 #rm ../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt
 
-echo "$Nmfullm1"
+for i in $(seq 0 "$Njobm1")
+do
+    ((start = "$i"*"$Nper"))
+    ((end = "$i"*"$Nper" + "$Nper"))
 
-echo [0-"$Nfullm1"]
-
-sbatch --array [0-10367]%500 run_analysis.sh
+  sbatch --array ["$start"-"$end"] run_analysis.sh
+done
 
 #$ sbatch --array [1-Nfullm1] testarray.sh
 
