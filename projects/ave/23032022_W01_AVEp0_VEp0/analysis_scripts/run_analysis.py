@@ -65,7 +65,7 @@ def run(sim_name):
     average_P = geo.apply_c_type_fn_to_meshes(geo.average_perimeter_by_cell_type,meshes,c_types)
     average_A = geo.apply_c_type_fn_to_meshes(geo.average_area_by_cell_type,meshes,c_types)
     average_p0 = geo.apply_c_type_fn_to_meshes(geo.average_shape_index_by_cell_type,meshes,c_types)
-    average_eccentricity = geo.apply_c_type_fn_to_meshes(geo.average_eccentricies_by_cell_type,meshes,c_types)
+    # average_eccentricity = geo.apply_c_type_fn_to_meshes(geo.average_eccentricies_by_cell_type,meshes,c_types)
 
     def get_ave_connected_components(mesh):
         return top.count_connected_components(mesh.tri, c_types, len(mesh.x))[0]
@@ -88,7 +88,7 @@ def run(sim_name):
                        "average_P_AVE":average_P[:,0],"average_P_VE":average_P[:,1],
                        "average_A_AVE":average_A[:,0],"average_A_VE":average_A[:,1],
                        "average_p0_AVE":average_p0[:,0],"average_p0_VE":average_p0[:,1],
-                       "average_ecc_AVE":average_eccentricity[:,0],"average_ecc_VE":average_eccentricity[:,1],
+                       # "average_ecc_AVE":average_eccentricity[:,0],"average_ecc_VE":average_eccentricity[:,1],
                        "AVE_connected_components":ave_connected_components})
     if not os.path.exists("../analysis_results"):
         os.mkdir("../analysis_results")
