@@ -101,5 +101,8 @@ if __name__ == "__main__":
     i = int(sys.argv[1])
     path_names = open("../scan_summary/23032022_W01_AVEp0_VEp0_path_names.txt").readlines()
     path_name = path_names[i].split("\n")[0]
-    sim_name = path_name.split(".pickle")[0].split("scan_dicts/")[1]
-    run(sim_name)
+    out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt")
+    out_file_lines = out_file.readlines()
+    if any([path_name in o for o in out_file_lines]):
+        sim_name = path_name.split(".pickle")[0].split("scan_dicts/")[1]
+        run(sim_name)
