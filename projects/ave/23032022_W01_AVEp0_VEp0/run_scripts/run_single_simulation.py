@@ -26,7 +26,8 @@ def run_simulation(path_name):
     sim.simulate(progress_bar=False)
 
 if __name__ == "__main__":
-    i = int(sys.argv[1])
+    j, k, Nper = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
+    i = j + k * Nper
     path_names = open("../scan_summary/23032022_W01_AVEp0_VEp0_path_names.txt").readlines()
     path_name = path_names[i].split("\n")[0]
     out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt")

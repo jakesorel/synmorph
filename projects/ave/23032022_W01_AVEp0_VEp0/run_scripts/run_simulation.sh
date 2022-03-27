@@ -14,12 +14,12 @@
 eval "$(conda shell.bash hook)"
 source activate synmorph
 
-python run_single_simulation.py "$1"
+python run_single_simulation.py ${SLURM_ARRAY_TASK_ID} "$1" "$2"
 
-
-((jp1 = "$1" + 1))
-
-if [[ "$1" -lt "$2" ]]
-then
-    sbatch run_simulation.sh "$jp1" "$2"
-fi
+#
+#((jp1 = "$1" + 1))
+#
+#if [[ "$1" -lt "$2" ]]
+#then
+#    sbatch run_simulation.sh "$jp1" "$2"
+#fi
