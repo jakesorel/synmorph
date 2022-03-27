@@ -3,6 +3,7 @@
 ((Nfull = "$1"*"$1"*"$1"*"$2"))
 ((Nfullm1 = "$Nfull" - 1))
 ((Nper = "$1"*"$2"))
+((Nperm1 = "$1"*"$2"-1))
 ((Njob = "$1"*"$1"))
 ((Njobm1 = "$1"*"$1"-1))
 
@@ -10,10 +11,10 @@
 
 for i in $(seq 0 "$Njobm1")
 do
-    ((start = "$i"*"$Nper"))
-    ((end = "$i"*"$Nper" + "$Nper"))
+#    ((start = "$i"*"$Nper"))
+#    ((end = "$i"*"$Nper" + "$Nper"))
 
-  sbatch --array ["$start"-"$end"] run_analysis.sh
+  sbatch --array [0-"$Nperm1"] run_analysis.sh "$i" "$Nper"
 done
 
 #$ sbatch --array [1-Nfullm1] testarray.sh

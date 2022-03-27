@@ -13,7 +13,7 @@
 eval "$(conda shell.bash hook)"
 source activate synmorph
 
-python ../analysis_scripts/run_analysis.py ${SLURM_ARRAY_TASK_ID}
+python ../analysis_scripts/run_analysis.py ${SLURM_ARRAY_TASK_ID} "$1" "$2"
 
 #((j = "$2"*"$1"))
 #((terminate = "$2"*"$1" + "$2"))
