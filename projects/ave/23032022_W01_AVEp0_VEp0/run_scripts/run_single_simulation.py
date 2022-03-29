@@ -7,8 +7,10 @@ sys.path.append(os.path.dirname(SCRIPT_DIR))
 
 import pickle
 import time
+import synmorph as sm
 
-def run_simulation(path_name,sm):
+
+def run_simulation(path_name):
     pikd = open("../%s"%path_name, 'rb')
     scan_dict = pickle.load(pikd)
     pikd.close()
@@ -29,16 +31,11 @@ if __name__ == "__main__":
     i = j + k * Nper
     path_names = open("../scan_summary/23032022_W01_AVEp0_VEp0_path_names.txt").readlines()
     path_name = path_names[i].split("\n")[0]
-    out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt")
-    out_file_lines = out_file.readlines()
-    if not any([path_name in o for o in out_file_lines]):
-        import synmorph as sm
-        t0 = time.time()
-        run_simulation(path_name,sm)
-        t1 = time.time()
-        print(t1-t0)
-        out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt","a")
-        out_file.write("%s_%.2f"%(path_name,(t1-t0)) + "\n")
-        out_file.close()
-    else:
-        print("SKIP")
+    t0 = time.time()
+    run_simulation(path_name)
+    t1 = time.time()
+    print(t1-t0)
+    out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt","a")
+    out_file.write("%s_%.2f"%(path_name,(t1-t0)) + "\n")
+    out_file.close()
+
