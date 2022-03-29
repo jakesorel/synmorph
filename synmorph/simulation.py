@@ -201,6 +201,7 @@ class Simulation:
             update(dt)  # update the tissue and the grn.
             F = self.t.get_forces()  # calculate the forces.
             self.t.mesh.x += F * dt  # execute the movements.
+
             self.t.mesh.x = per.mod2(self.t.mesh.x, self.t.mesh.L, self.t.mesh.L)  # enforce periodicity
             if not i % self.tskip:
                 ## for the saving time-points, copy over to x_save (and also var_save)

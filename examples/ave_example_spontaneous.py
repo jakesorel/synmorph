@@ -41,18 +41,20 @@ tissue_params = {"L": 20,
                  "P0": 3.6,
                  "kappa_A": 1,
                  "kappa_P": 0.1,
-                 "W": np.array(((0.0, 0.0762,0.0762,0.1), (0.0762, 0,0,0.1),(0.0762,0,0,0.1),(0.1,0.1,0.1,0.1)))*1,
+                 #"W": np.array(((0.0, 0.0762,0.0762,0.1), (0.0762, 0,0,0.1),(0.0762,0,0,0.1),(0.1,0.1,0.1,0.1)))*1,
+                 "W": np.array(
+                     ((0.0, 0.001, 0.001, 0.1), (0.001, 0, 0, 0.1), (0.001, 0, 0, 0.1), (0.1, 0.1, 0.1, 0.1))) * 1,
                  "a": 0,
                  "k": 0}
-active_params = {"v0": 2e-1,
+active_params = {"v0": 1e-1,
                  "Dr": 5e-3}
 init_params = {"init_noise": 0.1,
                "c_type_proportions": (1.0, 0)}
 run_options = {"equiangulate": True,
                "equi_nkill": 10}
 simulation_params = {"dt": 0.05,
-                     "tfin": 300,
-                     "tskip": 10,
+                     "tfin": 100,
+                     "tskip": 1,
                      "dt_grn": 0.025,
                      "grn_sim": "grn_ave_couple_orientation",
                      "tinit":10,
@@ -67,7 +69,7 @@ grn_params = {"n_AVE_cells":20,
               "AVE_A0":0.7,
               "exe_frac":0.0,
               "AVE_p0":3.6,
-              "nonAVE_p0":3.6}
+              "nonAVE_p0":4.2}
 save_options = {"save": "skeleton",
                 "result_dir": "results",
                 "name": "AVE_example2",
@@ -82,9 +84,9 @@ sim = sm.simulation(tissue_params=tissue_params,
 
 sim.simulate(progress_bar=True)
 
-sim.animate_c_types(n_frames=20,
+sim.animate_c_types(n_frames=10,
                     c_type_col_map=["#4bdb71", "#ffbb4d","#ffbb4d","white"],
-                    file_name="spontaneous2")
+                    file_name="spontaneous-1")
 
 fig, ax = plt.subplots()
 # ax.quiver(sim.t.mesh.x[:,0],sim.t.mesh.x[:,1],sim.t.F[:,0]/np.linalg.norm(sim.t.F,axis=1),sim.t.F[:,1]/np.linalg.norm(sim.t.F,axis=1),color="red")

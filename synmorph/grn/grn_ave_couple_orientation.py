@@ -85,6 +85,9 @@ class Grn_ave_couple_orientation:
         average_vec = neighbourhood_mat@self.t.active.orientation_vector / np.expand_dims(neighbourhood_mat.sum(axis=1),1)
         average_vec[~self.ave_mask] = 0
         average_orientation = np.arctan2(average_vec[:,1],average_vec[:,0])
+        mask_nan = np.isnan(average_orientation)
+        average_orientation[mask_nan] = 0
+        self.t.active.active_params["alpha_dir"][mask_nan] = 0
         return average_orientation
 
     def update_grn(self, dt, dt_grn):
