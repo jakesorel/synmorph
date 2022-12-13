@@ -38,10 +38,10 @@ class Grn_ave_couple_orientation:
         self.x0_bound = self.x0[self.t.c_types==3]
 
     def set_initial_condition(self):
-        centre = np.array((self.t.mesh.L/2,self.t.mesh.L/2))
-        radius = np.sqrt(self.params["n_AVE_cells"]*self.t.mesh.A.mean()/np.pi)
+        self.centre = np.array((self.t.mesh.L/2,self.t.mesh.L/2))
+        self.radius = np.sqrt(self.params["n_AVE_cells"]*self.t.mesh.A.mean()/np.pi)
         x = self.t.mesh.x
-        mask = (x[:,0]-centre[0])**2 + (x[:,1]-centre[1])**2 <= radius**2
+        mask = (x[:,0]-self.centre[0])**2 + (x[:,1]-self.centre[1])**2 <= self.radius**2
         self.ave_mask = mask
         # ave_ids = np.nonzero(mask)[0]
         self.t.c_types[mask] = 0
@@ -51,12 +51,12 @@ class Grn_ave_couple_orientation:
         exe_frac = self.params["exe_frac"]
         # top_bottom_mask = (x[:,1]<(self.t.mesh.L*frac)) + (x[:,1]>(self.t.mesh.L*(1-frac)))
         # self.t.c_types[top_bottom_mask] = 2
-        exe_rad = (1-exe_frac)*self.t.mesh.L/2
-        bound_rad = (1-boundary_frac)*self.t.mesh.L/2
+        self.exe_rad = (1-exe_frac)*self.t.mesh.L/2
+        self.bound_rad = (1-boundary_frac)*self.t.mesh.L/2
 
-        self.exe_mask = ((x[:,0]-centre[0])**2 + (x[:,1]-centre[1])**2 >= exe_rad**2)*((x[:,0]-centre[0])**2 + (x[:,1]-centre[1])**2 < bound_rad**2)
-        self.boundary_mask = ((x[:,0]-centre[0])**2 + (x[:,1]-centre[1])**2 >= bound_rad**2)
-
+        self.exe_mask = ((x[:,0]-self.centre[0])**2 + (x[:,1]-self.centre[1])**2 >= self.exe_rad**2)*((x[:,0]-self.centre[0])**2 + (x[:,1]-self.centre[1])**2 < self.bound_rad**2)
+        self.boundary_mask = ((x[:,0]-self.centre[0])**2 + (x[:,1]-self.centre[1])**2 >= self.bound_rad**2)
+        self.epi_mask = ~(self.ave_mask + self.exe_mask + self.boundary_mask)
         self.t.c_types[self.exe_mask] = 2
         self.t.c_types[self.boundary_mask] = 3
 
@@ -76,7 +76,8 @@ class Grn_ave_couple_orientation:
 
     def set_shape_index(self):
         self.t.P0[self.ave_mask] = np.sqrt(self.t.A0[self.ave_mask])*self.params["AVE_p0"]
-        self.t.P0[~self.ave_mask] = np.sqrt(self.t.A0[~self.ave_mask])*self.params["nonAVE_p0"]
+        self.t.P0[self.epi_mask] = np.sqrt(self.t.A0[self.epi_mask])*self.params["nonAVE_p0"]
+        self.t.P0[self.exe_mask] = np.sqrt(self.t.A0[self.exe_mask])*self.params["ExEVE_p0"]
 
 
     def get_average_orientation(self):

@@ -36,8 +36,8 @@ AVE-EPI
 
 """
 
-W01 = 0.0657933224657568
-AVEp0 =  3.836363636363637
+W01 = 0.08
+AVEp0 =  4.1
 
 tissue_params = {"L": 20,
                  "A0": 1,
@@ -56,12 +56,12 @@ init_params = {"init_noise": 0.1,
 run_options = {"equiangulate": True,
                "equi_nkill": 10}
 simulation_params = {"dt": 0.05,
-                     "tfin": 300,
+                     "tfin": 600,
                      "tskip": 1,
                      "dt_grn": 0.025,
                      "grn_sim": "grn_ave_couple_orientation",
                      "tinit":10,
-                     "random_seed":2022}
+                     "random_seed":2024}
 grn_params = {"n_AVE_cells":20,
               "AVE_alpha_dir":0.15,
               "non_AVE_alpha_dir":0,
@@ -72,7 +72,8 @@ grn_params = {"n_AVE_cells":20,
               "AVE_A0":0.7,
               "exe_frac":0.0,
               "AVE_p0":AVEp0,
-              "nonAVE_p0":4.2}
+              "nonAVE_p0":4.2,
+              "ExEVE_p0":3.2}
 save_options = {"save": "None",
                 "result_dir": "results",
                 "name": "AVE_example2",
@@ -87,9 +88,9 @@ sim = sm.simulation(tissue_params=tissue_params,
 
 sim.simulate(progress_bar=True)
 
-sim.animate_c_types(n_frames=50,
-                    c_type_col_map=["#4bdb71", "#ffbb4d","#ffbb4d","white"],
-                    file_name="VEp0 = 4.2 W01 = 1e-3")
+sim.animate_c_types(n_frames=10,
+                    c_type_col_map=["#4bdb71", "#ffbb4d","#e8731a","white"],
+                    file_name="three tissue2")
 
 fig, ax = plt.subplots()
 # ax.quiver(sim.t.mesh.x[:,0],sim.t.mesh.x[:,1],sim.t.F[:,0]/np.linalg.norm(sim.t.F,axis=1),sim.t.F[:,1]/np.linalg.norm(sim.t.F,axis=1),color="red")
