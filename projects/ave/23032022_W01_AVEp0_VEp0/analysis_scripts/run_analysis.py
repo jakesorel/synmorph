@@ -187,21 +187,21 @@ def run_time_binned(sim_name, n_time_point=101):
 
     for i in range(0, len(t)-1):
         b = meshes[i].l_int.tocsr()
-        dfi = pd.DataFrame({"t": np.float16(np.repeat(t[i], len(P[i]))),
+        dfi = pd.DataFrame({"t": np.float32(np.repeat(t[i], len(P[i]))),
                             "c_types": c_types,
                             "cell_id": np.arange(len(P[i])),
-                            "x": np.float16(x[i, :, 0]),
-                            "y": np.float16(x[i, :, 1]),
-                            "P": np.float16(P[i]),
-                            "A": np.float16(A[i]),
-                            "SI": np.float16(SI[i]),
-                            "ecc": np.float16(eccentricities[i]),
+                            "x": np.float32(x[i, :, 0]),
+                            "y": np.float32(x[i, :, 1]),
+                            "P": np.float32(P[i]),
+                            "A": np.float32(A[i]),
+                            "SI": np.float32(SI[i]),
+                            "ecc": np.float32(eccentricities[i]),
                             "neighbours": [":".join(vec.astype(str)) for vec in np.split(b.indices, b.indptr[1:-1])],
                             "N_neighbours": N_neighbours[i],
-                            "inst_speed": np.float16(speed_inst[i]),
-                            "inst_ant_speed": np.float16(ant_speed_inst[i]),
-                            "cum_speed": np.float16(speed_cum[i]),
-                            "cum_ant_speed": np.float16(ant_speed_cum[i])})
+                            "inst_speed": np.float32(speed_inst[i]),
+                            "inst_ant_speed": np.float32(ant_speed_inst[i]),
+                            "cum_speed": np.float32(speed_cum[i]),
+                            "cum_ant_speed": np.float32(ant_speed_cum[i])})
         dfi = dfi[dfi["c_types"] < 2]
         df = pd.concat([df, dfi])
 
@@ -236,8 +236,8 @@ def run_time_binned(sim_name, n_time_point=101):
     df["position_class"] = classes[:-1][:, c_types < 2].ravel()
 
     df_position_class = pd.DataFrame()
-    for i in range(1, len(t)):
-        dfi = df[df["t"] == t_span[i]].groupby("position_class").mean()
+    for i in range(0, len(t)-1):
+        dfi = df[df["t"] == np.float32(t[i])].groupby("position_class").mean()
         df_position_class = pd.concat([df_position_class, dfi])
     df_position_class["position_class"] = df_position_class.index
 
@@ -247,8 +247,8 @@ def run_time_binned(sim_name, n_time_point=101):
     df["position_and_cell_type_class"] = df["position_class"] + 64 * df["c_types"]
 
     df_position_and_ctype_class = pd.DataFrame()
-    for i in range(1, len(t)):
-        dfi = df[df["t"] == t_span[i]].groupby("position_and_cell_type_class").mean()
+    for i in range(0, len(t)-1):
+        dfi = df[df["t"] == t[i]].groupby("position_and_cell_type_class").mean()
         df_position_and_ctype_class = pd.concat([df_position_and_ctype_class, dfi])
 
     df_position_and_ctype_class.to_csv(
