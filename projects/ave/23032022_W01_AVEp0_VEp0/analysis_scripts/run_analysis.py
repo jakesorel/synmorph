@@ -266,6 +266,6 @@ if __name__ == "__main__":
     out_file_lines = out_file.readlines()
     if any([path_name in o for o in out_file_lines]):
         sim_name = path_name.split(".pickle")[0].split("scan_dicts/")[1]
-        run(sim_name)
+        # run(sim_name)
         run_time_binned(sim_name)
 
