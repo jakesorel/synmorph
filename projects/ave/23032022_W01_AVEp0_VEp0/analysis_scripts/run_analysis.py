@@ -1,6 +1,7 @@
 import os
 import sys
 
+
 SCRIPT_DIR = "../../../../"
 sys.path.append(os.path.dirname(SCRIPT_DIR))
 
