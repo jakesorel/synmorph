@@ -257,6 +257,7 @@ def run_time_binned(sim_name, n_time_point=101):
             sim_name), index=False)
 
 
+
 if __name__ == "__main__":
     j, k, Nper = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
     i = j + k * Nper
