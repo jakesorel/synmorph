@@ -216,7 +216,7 @@ def run_time_binned(sim_name, n_time_point=101):
     if not os.path.exists("../analysis_results/compiled/by_position_class_and_ctype"):
         os.mkdir("../analysis_results/compiled/by_position_class_and_ctype")
 
-    df.to_csv("../analysis_results/compiled/by_cell/%s_analysis_by_cell.csv" % (sim_name), index=None)
+    # df.to_csv("../analysis_results/compiled/by_cell/%s_analysis_by_cell.csv" % (sim_name), index=None)
 
     ###note that distances are normalized to sqrt(A0) or sqrt(mean(A)).
 
