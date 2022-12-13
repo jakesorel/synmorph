@@ -229,10 +229,10 @@ def run_time_binned(sim_name, n_time_point=101):
     dist_from_mid = np.sqrt(x[..., 0] ** 2 + x[..., 1] ** 2)
 
     angle_classes = np.digitize(np.arctan2(x[..., 1], x[..., 0]), angle_bins)
-    angle_classes = np.mod(angle_classes - 6,8)
+    angle_classes = np.mod(angle_classes - 7,8)
     radius_classes = np.digitize(dist_from_mid, radius_bins)
 
-    classes = 8 * (radius_classes - 1) + (angle_classes - 1)
+    classes = 8 * (radius_classes - 1) + (angle_classes)
 
     df["position_class"] = classes[:-1][:, c_types < 2].ravel()
 
