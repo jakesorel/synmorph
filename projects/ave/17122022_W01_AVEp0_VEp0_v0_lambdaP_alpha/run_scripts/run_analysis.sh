@@ -2,7 +2,7 @@
 
 #Submit this script with: sbatch thefilename
 
-#SBATCH --time=01:00:00   # walltime
+#SBATCH --time=00:30:00   # walltime
 #SBATCH -J "AVE_analysis"   # job name
 #SBATCH --output=../bash_out/output_analysis.out
 #SBATCH --error=../bash_out/error_analysis.out
