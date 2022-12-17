@@ -11,7 +11,9 @@ import time
 import synmorph as sm
 import fcntl
 
-
+"""
+Decided not to vary alpha. 
+"""
 
 def run_simulation(path_name):
     pikd = open(path_name, 'rb')
@@ -37,7 +39,7 @@ if __name__ == "__main__":
     if not os.path.exists("../scan_summary/%s_full_summary.csv" % base_name):
         with open("../scan_summary/%s_full_summary.csv" % base_name, "w+") as g:
             fcntl.flock(g, fcntl.LOCK_EX)
-            g.write("counter,W01,AVE_p0,VE_p0,AVE_v0,lambda_P,alpha,seed,scan_dict_name\n")
+            g.write("counter,W01,AVE_p0,VE_p0,AVE_v0,lambda_P,seed,scan_dict_name\n")
             fcntl.flock(g, fcntl.LOCK_UN)
             # g.close()
 
@@ -50,27 +52,26 @@ if __name__ == "__main__":
 
     j, k, Nper = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
     i = j + k * Nper
-    [i1,i2,i3,i4, i5, i6, j] = np.array(list(np.base_repr(i, 10).zfill(7))).astype(int)
     N = 10
+    [i1,i2,i3,i4, i5, j] = np.array(list(np.base_repr(i, N).zfill(6))).astype(int)
+
     W01_range = np.logspace(-3, -1, N)
     AVE_p0_range = np.linspace(3.4, 5, N)
     VE_p0_range = np.linspace(3.4, 5, N)
     AVE_v0_range = np.logspace(-3, -1, N)
     lambda_P_range = np.logspace(-2, 0, N)
-    alpha_range = np.logspace(-3, 0, N)
     seed_range = 2022 + np.arange(N, dtype=int)
     W01 = W01_range[i1]
     AVE_p0 = AVE_p0_range[i2]
     VE_p0 = VE_p0_range[i3]
     AVE_v0 = AVE_v0_range[i4]
     lambda_P = lambda_P_range[i5]
-    alpha = alpha_range[i6]
     seed = seed_range[j]
-    counter = np.flip([i1, i2, i3, i4, i5, i6, j])
+    counter = np.flip([i1, i2, i3, i4, i5, j])
     counter = (N ** np.arange(len(counter)) * counter).sum()
 
     scan_dict_name = base_name + "_" + "%s" % counter
-    df_entry = np.array([counter, W01, AVE_p0, VE_p0, AVE_v0, lambda_P, alpha, seed, scan_dict_name])
+    df_entry = np.array([counter, W01, AVE_p0, VE_p0, AVE_v0, lambda_P, seed, scan_dict_name])
 
     with open("../scan_summary/%s_full_summary.csv" % (base_name), "a+") as g:
         fcntl.flock(g, fcntl.LOCK_EX)
@@ -106,7 +107,7 @@ if __name__ == "__main__":
                          "tinit": 10,
                          "random_seed": int(seed)}
     grn_params = {"n_AVE_cells": 20,
-                  "AVE_alpha_dir": alpha,
+                  "AVE_alpha_dir": 0.15,
                   "non_AVE_alpha_dir": 0,
                   "AVE_v0": AVE_v0,
                   "non_AVE_v0": 0,

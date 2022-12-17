@@ -10,4 +10,4 @@
 #SBATCH --partition=cpu
 #SBATCH --mem=2G
 
-./for_loop.sh 10 10
+./for_loop.sh "$1" "$2"
