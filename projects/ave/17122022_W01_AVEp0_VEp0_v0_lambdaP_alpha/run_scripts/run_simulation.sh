@@ -14,6 +14,8 @@ source activate synmorph
 
 python run_single_simulation.py ${SLURM_ARRAY_TASK_ID} "$1" "$2"
 
+rm slurm-*.out
+
 #
 #((jp1 = "$1" + 1))
 #
