@@ -16,5 +16,12 @@ def serialise_dict(dictionary):
             serialised_dictionary[key] = value
     return serialised_dictionary
 
+def convert_to_unsigned_int(arr,L):
+    arr_div = arr/L
+    arr_int = numpy.round(arr_div*2**16).astype(numpy.uint16)
+    return arr_int
+
+def convert_to_float(arr_int,L):
+    return arr_int.astype(numpy.float64)*L/(2**16)
 
 ##could also put the default params in here...

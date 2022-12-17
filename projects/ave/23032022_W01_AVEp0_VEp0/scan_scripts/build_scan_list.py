@@ -62,7 +62,7 @@ for i, W01 in enumerate(W01_range):
                               "exe_frac": 0.0,
                               "AVE_p0": AVE_p0,
                               "nonAVE_p0": VE_p0}
-                save_options = {"save": "skeleton",
+                save_options = {"save": "hdf5",
                                 "result_dir": "../scan_results",
                                 "name": scan_dict_name,
                                 "compressed": True}

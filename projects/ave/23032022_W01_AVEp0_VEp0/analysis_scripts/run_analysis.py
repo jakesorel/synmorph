@@ -13,7 +13,7 @@ from synmorph.analysis import spatial as sp
 import pickle
 import pandas as pd
 
-# sim_name = "23032022_W01_AVEp0_VEp0_504"
+# sim_name = "23032022_W01_AVEp0_VEp0_980"
 
 
 def run(sim_name):
@@ -162,7 +162,11 @@ def run_time_binned(sim_name, n_time_point=101):
     eccentricities, P, A, N_neighbours = np.zeros_like(x[:, :, 0]), np.zeros_like(x[:, :, 0]), np.zeros_like(
         x[:, :, 0]), np.zeros_like(x[:, :, 0], dtype=np.int64)
     for i, mesh in enumerate(meshes):
-        eccentricities[i] = geo.get_eccentricities(mesh)
+        try:
+            eccentricities[i] = geo.get_eccentricities(mesh)
+        except:
+            eccentricities[i] = np.nan
+
         P[i] = mesh.P
         A[i] = mesh.A
         N_neighbours[i] = np.array((mesh.l_int != 0).sum(axis=0).ravel())

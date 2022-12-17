@@ -5,6 +5,9 @@ import os
 import pickle
 from datetime import datetime
 import codecs, json
+import h5py
+import shutil
+import gzip
 
 
 import matplotlib.pyplot as plt
@@ -91,17 +94,20 @@ class Simulation:
         if not os.path.exists(self.save_options["result_dir"]):
             os.mkdir(self.save_options["result_dir"])
 
-        self.save_dir = self.save_options["result_dir"] + "/" + self.name
-        if not os.path.exists(self.save_dir):
-            os.mkdir(self.save_dir)
+        # #Remove the excessive directory structure for large scale simualtions:
+        # self.save_dir = self.save_options["result_dir"] + "/" + self.name
+        # if not os.path.exists(self.save_dir):
+        #     os.mkdir(self.save_dir)
+        #
+        # self.save_dir_pickled = self.save_options["result_dir"] + "/" + self.name + "/pickled"
+        # if not os.path.exists(self.save_dir_pickled):
+        #     os.mkdir(self.save_dir_pickled)
+        #
+        # self.save_dir_plots = self.save_options["result_dir"] + "/" + self.name + "/plots"
+        # if not os.path.exists(self.save_dir_plots):
+        #     os.mkdir(self.save_dir_plots)
 
-        self.save_dir_pickled = self.save_options["result_dir"] + "/" + self.name + "/pickled"
-        if not os.path.exists(self.save_dir_pickled):
-            os.mkdir(self.save_dir_pickled)
-
-        self.save_dir_plots = self.save_options["result_dir"] + "/" + self.name + "/plots"
-        if not os.path.exists(self.save_dir_plots):
-            os.mkdir(self.save_dir_plots)
+        self.save_dir_pickled = self.save_options["result_dir"]
 
         if "tinit" in self.simulation_params:
             if self.simulation_params["tinit"] >0:
@@ -225,6 +231,9 @@ class Simulation:
 
         if self.save_options["save"] == "skeleton":
             self.save_skeleton(self.name,id=self.id,dir_path=self.save_dir_pickled)
+
+        if self.save_options["save"] == "hdf5":
+            self.save_hdf5_skeleton(self.name,id=self.id,dir_path=self.save_dir_pickled)
 
     def animate_c_types(self,
                         n_frames=20,
@@ -356,11 +365,44 @@ class Simulation:
                          "run_options": self.t.mesh.run_options,
                          "simulation_params": self.simulation_params,
                          "L":self.t.mesh.L}
-        json.dump(skeleton_dict, codecs.open(dir_path + "/" + self.name + "_simulation" + '.json', 'w', encoding='utf-8'),
-                  separators=(',', ':'),
-                  sort_keys=True,
-                  indent=4)
+        if self.save_options["compressed"] is True:
+            with bz2.BZ2File(dir_path + "/" + self.name + "_simulation" + '.pbz2', 'w') as f:
+                cPickle.dump(skeleton_dict, f)
+        else:
+            json.dump(skeleton_dict, codecs.open(dir_path + "/" + self.name + "_simulation" + '.json', 'w', encoding='utf-8'),
+                      separators=(',', ':'),
+                      sort_keys=True,
+                      indent=4)
         ### this saves the array in .json format
+
+    def save_hdf5_skeleton(self, name, id=None, dir_path=""):
+        """Note that this drops active_save"""
+        self.name = name
+        if id is None:
+            self.id = {}
+        else:
+            self.id = id
+        skeleton_dict = {"c_types": self.t.c_types,
+                         "x_save": self.x_save,
+                         "tri_save": self.tri_save}
+
+        skeleton_dict["x_save"] = convert_to_unsigned_int(np.array(skeleton_dict["x_save"]), self.t.mesh.L)
+        skeleton_dict["tri_save"] = np.array(skeleton_dict["tri_save"]).astype(np.uint16)
+        skeleton_dict["c_types"] = np.array(skeleton_dict["c_types"]).astype(np.uint8)
+
+        file_path = dir_path + "/" + self.name + "_simulation" + '.h5'
+
+        f = h5py.File(file_path, 'w')
+        for i, key in enumerate(skeleton_dict.keys()):
+            f.create_dataset(key, data=skeleton_dict[key], compression="gzip")
+        f.close()
+
+        with open(file_path, 'rb') as f_in:
+            with gzip.open(file_path + ".gz", 'wb') as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+        os.remove(file_path)
+
 
     def load(self, fname):
         """
@@ -388,3 +430,4 @@ class Simulation:
     @property
     def tskip(self):
         return self.simulation_params["tskip"]
+
