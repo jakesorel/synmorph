@@ -19,7 +19,7 @@
 rm -R ../scan_summary
 #rm -R ../scan_dicts
 
-mkdir scan_summary
+mkdir ../scan_summary
 #mkdir scan_dicts
 
 for i in $(seq 0 "$Njobm1")
