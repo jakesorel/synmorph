@@ -14,7 +14,7 @@ import fcntl
 
 
 def run_simulation(path_name):
-    pikd = open("../%s"%path_name, 'rb')
+    pikd = open(path_name, 'rb')
     scan_dict = pickle.load(pikd)
     pikd.close()
 
