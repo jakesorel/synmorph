@@ -34,14 +34,14 @@ base_name = "17122022_W01_AVEp0_VEp0_v0_lambdaP_alpha"
 df_save = pd.DataFrame()
 
 if not os.path.exists("../scan_summary/%s_full_summary.csv"%base_name):
-    with open("../scan_summary/%s_full_summary.csv"%base_name, "a") as g:
+    with open("../scan_summary/%s_full_summary.csv"%base_name, "w+") as g:
         fcntl.flock(g, fcntl.LOCK_EX)
         g.write("counter,W01,AVE_p0,VE_p0,AVE_v0,lambda_P,alpha,seed,scan_dict_name\n")
         fcntl.flock(g, fcntl.LOCK_UN)
         # g.close()
 
 if not os.path.exists("../scan_summary/%s_path_names.txt"%base_name):
-    with open("../scan_summary/%s_path_names.txt"%base_name, "a") as g:
+    with open("../scan_summary/%s_path_names.txt"%base_name, "w+") as g:
         fcntl.flock(g, fcntl.LOCK_EX)
         # g.write("path_name\n")
         fcntl.flock(g, fcntl.LOCK_UN)
