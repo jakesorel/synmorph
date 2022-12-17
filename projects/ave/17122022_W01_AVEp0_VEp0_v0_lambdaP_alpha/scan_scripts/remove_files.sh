@@ -9,5 +9,4 @@
 #SBATCH --partition=cpu
 #SBATCH --mem=2G
 
-rm -R ../scan_summary
-rm -R ../scan_dicts
+rm -R ../scan_dicts_old
