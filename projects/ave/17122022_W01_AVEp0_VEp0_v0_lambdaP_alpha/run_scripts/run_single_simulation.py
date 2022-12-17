@@ -72,12 +72,12 @@ if __name__ == "__main__":
     scan_dict_name = base_name + "_" + "%s" % counter
     df_entry = np.array([counter, W01, AVE_p0, VE_p0, AVE_v0, lambda_P, alpha, seed, scan_dict_name])
 
-    with open("../scan_summary/%s_full_summary.csv" % (base_name, i), "a+") as g:
+    with open("../scan_summary/%s_full_summary.csv" % (base_name), "a+") as g:
         fcntl.flock(g, fcntl.LOCK_EX)
         g.write(",".join(df_entry.astype(str)) + "\n")
         fcntl.flock(g, fcntl.LOCK_UN)
 
-    with open("../scan_summary/%s_path_names.txt" % (base_name, i), "a+") as g:
+    with open("../scan_summary/%s_path_names.txt" % (base_name), "a+") as g:
         fcntl.flock(g, fcntl.LOCK_EX)
         g.write(scan_dict_name + "\n")
         fcntl.flock(g, fcntl.LOCK_UN)
