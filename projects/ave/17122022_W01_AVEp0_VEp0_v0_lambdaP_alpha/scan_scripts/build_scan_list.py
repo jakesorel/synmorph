@@ -78,7 +78,7 @@ with open("../scan_summary/%s_full_summary.csv"%base_name, "a") as g:
 
 with open("../scan_summary/%s_path_names.txt"%base_name, "a") as g:
     fcntl.flock(g, fcntl.LOCK_EX)
-    g.write(scan_dict_name)
+    g.write(scan_dict_name + "\n")
     fcntl.flock(g, fcntl.LOCK_UN)
 
 tissue_params = {"L": 15,
