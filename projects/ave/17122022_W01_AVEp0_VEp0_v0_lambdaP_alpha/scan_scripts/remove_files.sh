@@ -10,3 +10,5 @@
 #SBATCH --mem=2G
 
 rm -R ../scan_dicts_old
+rm -R ../scan_dicts_old_2
+
