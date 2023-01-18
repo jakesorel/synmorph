@@ -10,6 +10,7 @@ import pickle
 import time
 import synmorph as sm
 import fcntl
+import linecache
 
 """
 Decided not to vary alpha. 
@@ -29,7 +30,8 @@ def run_simulation(path_name):
                         run_options=scan_dict["run_options"],
                         save_options=scan_dict["save_options"])
 
-    sim.simulate(progress_bar=False)
+    sim.simulate(progress_bar=True)
+    return sim
 
 
 if __name__ == "__main__":
@@ -51,8 +53,14 @@ if __name__ == "__main__":
 
 
     j, k, Nper = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
-    i = j + k * Nper
+    idx = j + k * Nper
+    # i = j + k * Nper
+
+
+    i = int(linecache.getline("../scan_summary/not_run.txt", idx+1).strip("\n"))
     N = 10
+
+
     [i1,i2,i3,i4, i5, j] = np.array(list(np.base_repr(i, N).zfill(6))).astype(int)
 
     W01_range = np.logspace(-3, -1, N)

@@ -1,32 +1,18 @@
-#!/bin/bash
+#!/bin/bash 
+
+#Submit this script with: sbatch thefilename                                                                                                                                       
+
+#SBATCH --time=00:20:00   # walltime                                                                                                                                             
+#SBATCH -J "AVE2_for_loop_jobs"   # job name                                                                                                                                      
+#SBATCH --output=../bash_out/for_loop_2nd_jobs_output.out                                                                                                                              
+#SBATCH --error=../bash_out/for_loop_2nd_jobs_error.out                                                                                                                                
+#SBATCH -n 1                                                                                                                                                                       
+#SBATCH --partition=cpu                                                                                                                                                            
+#SBATCH --mem=2G                                                                                                                                                                   
 
 
-((Nfull = "$1"*"$1"*"$1"*"$1"*"$1"*"$2"))
-((Nfullm1 = "$Nfull" - 1))
-((Nper = "$1"*"$1"*"$2"))
-((Nperm1 = "$Nper"-1))
-((Njob = "$1"*"$1"*"$1"))
-((Njobm1 = "$Njob"-1))
 
-#rm ../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt
 
-for i in $(seq 0 "$Njobm1")
-do
-#    ((start = "$i"*"$Nper"))
-#    ((end = "$i"*"$Nper" + "$Nper"))
 
-  sbatch --array [0-"$Nperm1"] run_simulation.sh "$i" "$Nper"
-done
+sbatch --array [0-"$2"] run_simulation.sh ${SLURM_ARRAY_TASK_ID} "$1" 
 
-#
-#((Nfull = "$1"*"$1"*"$1"*"$2"))
-#((Nper = "$1"*"$2"))
-#((Njob = "$1"*"$1"))
-#
-##rm ../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt
-#
-#for i in $(seq 0 $(($Njob-1)))
-#do
-##    ./run_simulations.sh "$i" "$Nper"
-#    sbatch run_simulations.sh "$i" "$Nper"
-#done
