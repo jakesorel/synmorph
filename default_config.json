@@ -15,8 +15,8 @@
                 0
             ]
         ],
-        "a": 0,
-        "k": 0
+        "a": 0.3,
+        "k": 1.0
     },
     "active_params": {
         "v0": 0.1,
@@ -40,13 +40,14 @@
         "equiangulate": true,
         "equi_nkill": 10
     },
-    "save_options": {
-    },
+    "save_options": {},
+    "save_data": true,
+    "animate": false,
     "n_frames": 75,
     "fps": 15,
     "dpi": 300,
     "c_type_col_map": [
-        "#FFBA40", 
+        "#FFBA40",
         "#67F5B5"
     ]
 }
