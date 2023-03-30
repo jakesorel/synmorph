@@ -151,9 +151,10 @@ class Simulation:
         k = 0  ##dummy variable to count the number of saved time-points.
 
         grn = True if self.grn is not None else False  # bool for whether to perform the grn calculation if such a model is specified.
-        save = ""
         if "save" in self.save_options:
             save = self.save_options["save"]
+        else:
+            save = ""
 
         def update_with_grn(dt):  # short-hand for updating tissue and grn.
             self.t.update(dt)

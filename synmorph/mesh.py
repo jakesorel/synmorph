@@ -1,6 +1,6 @@
-import _pickle as cPickle
-import bz2
-import pickle
+# import _pickle as cPickle
+# import bz2
+# import pickle
 
 import numpy as np
 import triangle as tr
@@ -9,6 +9,12 @@ from scipy.sparse import coo_matrix
 
 import synmorph.periodic_functions as per
 import synmorph.tri_functions as trf
+
+
+grid_x, grid_y = np.mgrid[-1:2, -1:2]
+grid_x[0, 0], grid_x[1, 1] = grid_x[1, 1], grid_x[0, 0]
+grid_y[0, 0], grid_y[1, 1] = grid_y[1, 1], grid_y[0, 0]
+grid_xy = np.array([grid_x.ravel(), grid_y.ravel()]).T
 
 
 class Mesh:
@@ -57,10 +63,7 @@ class Mesh:
         self.A_components = []
         self.l_int = []
 
-        self.grid_x, self.grid_y = np.mgrid[-1:2, -1:2]
-        self.grid_x[0, 0], self.grid_x[1, 1] = self.grid_x[1, 1], self.grid_x[0, 0]
-        self.grid_y[0, 0], self.grid_y[1, 1] = self.grid_y[1, 1], self.grid_y[0, 0]
-        self.grid_xy = np.array([self.grid_x.ravel(), self.grid_y.ravel()]).T
+        self.grid_xy = grid_xy
 
         if load is not None:
             self.load(load)
@@ -99,29 +102,31 @@ class Mesh:
         self.get_l_interface()
 
     def save(self, name, id=None, dir_path="", compressed=False):
-        self.name = name
-        if id is None:
-            self.id = {}
-        else:
-            self.id = id
-        if compressed:
-            with bz2.BZ2File(dir_path + "/" + self.name + "_mesh" + '.pbz2', 'w') as f:
-                cPickle.dump(self.__dict__, f)
-        else:
-            pikd = open(dir_path + "/" + self.name + "_mesh" + '.pickle', 'wb')
-            pickle.dump(self.__dict__, pikd)
-            pikd.close()
+        raise NotImplementedError
+    #     self.name = name
+    #     if id is None:
+    #         self.id = {}
+    #     else:
+    #         self.id = id
+    #     if compressed:
+    #         with bz2.BZ2File(dir_path + "/" + self.name + "_mesh" + '.pbz2', 'w') as f:
+    #             cPickle.dump(self.__dict__, f)
+    #     else:
+    #         pikd = open(dir_path + "/" + self.name + "_mesh" + '.pickle', 'wb')
+    #         pickle.dump(self.__dict__, pikd)
+    #         pikd.close()
 
     def load(self, fname):
-        if fname.split(".")[1] == "pbz2":
-            fdict = cPickle.load(bz2.BZ2File(fname, 'rb'))
-        else:
-            pikd = open(fname, 'rb')
-            fdict = pickle.load(pikd)
-            pikd.close()
-        if (self.run_options != fdict["run_options"]) and (self.run_options is not None):
-            print("Specified run options do not match those from the loaded file. Proceeding...")
-        self.__dict__ = fdict
+        raise NotImplementedError
+        # if fname.split(".")[1] == "pbz2":
+        #     fdict = cPickle.load(bz2.BZ2File(fname, 'rb'))
+        # else:
+        #     pikd = open(fname, 'rb')
+        #     fdict = pickle.load(pikd)
+        #     pikd.close()
+        # if (self.run_options != fdict["run_options"]) and (self.run_options is not None):
+        #     print("Specified run options do not match those from the loaded file. Proceeding...")
+        # self.__dict__ = fdict
 
     def get_vertices(self):
         """
@@ -130,8 +135,7 @@ class Mesh:
 
         :return V: Vertex coordinates (nv x 2)
         """
-        V = trf.circumcenter(self.tx, self.L)
-        return V
+        return trf.circumcenter(self.tx, self.L)
 
     def _triangulate(self):
         """
@@ -150,41 +154,8 @@ class Mesh:
         :param x: (nc x 2) matrix with the coordinates of each cell
         """
 
-        # 1. Tile cell positions 9-fold to perform the periodic triangulation
-        #   Calculates y from x. y is (9nc x 2) matrix, where the first (nc x 2) are the "true" cell positions,
-        #   and the rest are translations
-        y = trf.make_y(self.x, self.L * self.grid_xy)
+        self.n_v, self.tri, self.neigh = _triangulate(self.x, self.L)
 
-        # 2. Perform the triangulation on y
-        #   The **triangle** package (tr) returns a dictionary, containing the triangulation.
-        #   This triangulation is extracted and saved as tri
-        t = tr.triangulate({"vertices": y})
-        tri = t["triangles"]
-
-        # Del = Delaunay(y)
-        # tri = Del.simplices
-        n_c = self.x.shape[0]
-
-        # 3. Find triangles with **at least one** cell within the "true" frame (i.e. with **at least one** "normal cell")
-        #   (Ignore entries with -1, a quirk of the **triangle** package, which denotes boundary triangles
-        #   Generate a mask -- one_in -- that considers such triangles
-        #   Save the new triangulation by applying the mask -- new_tri
-        tri = tri[(tri != -1).all(axis=1)]
-        one_in = (tri < n_c).any(axis=1)
-        new_tri = tri[one_in]
-
-        # 4. Remove repeats in new_tri
-        #   new_tri contains repeats of the same cells, i.e. in cases where triangles straddle a boundary
-        #   Use remove_repeats function to remove these. Repeats are flagged up as entries with the same trio of
-        #   cell ids, which are transformed by the mod function to account for periodicity. See function for more details
-        n_tri = trf.remove_repeats(new_tri, n_c)
-
-        # tri_same = (self.tri == n_tri).all()
-
-        # 6. Store outputs
-        self.n_v = n_tri.shape[0]
-        self.tri = n_tri
-        self.neigh = trf.get_neighbours(n_tri)
 
     def triangulate(self):
         if type(self.k2s) is list or not self.run_options["equiangulate"]:
@@ -241,6 +212,56 @@ class Mesh:
 
     def get_l_interface(self):
         self.l_int = coo_matrix((self.lp1.ravel(), (self.tri.ravel(), trf.roll(self.tri, -1).ravel())))
+
+
+def _triangulate(x, L):
+    """
+    Calculates the periodic triangulation on the set of points x.
+
+    Stores:
+        n_v = number of vertices (int32)
+        tri = triangulation of the vertices (nv x 3) matrix.
+            Cells are stored in CCW order. As a convention, the first entry has the smallest cell id
+            (Which entry comes first is, in and of itself, arbitrary, but is utilised elsewhere)
+        vs = coordinates of each vertex; (nv x 2) matrix
+        neigh = vertex ids (i.e. rows of vs) corresponding to the 3 neighbours of a given vertex (nv x 3).
+            In CCW order, where vertex i {i=0..2} is opposite cell i in the corresponding row of tri
+        neighbours = coordinates of each neighbouring vertex (nv x 3 x 2) matrix
+
+    :param x: (nc x 2) matrix with the coordinates of each cell
+    """
+
+    # 1. Tile cell positions 9-fold to perform the periodic triangulation
+    #   Calculates y from x. y is (9nc x 2) matrix, where the first (nc x 2) are the "true" cell positions,
+    #   and the rest are translations
+    y = trf.make_y(x, L)
+
+    # 2. Perform the triangulation on y
+    #   The **triangle** package (tr) returns a dictionary, containing the triangulation.
+    #   This triangulation is extracted and saved as tri
+    t = tr.triangulate({"vertices": y})
+    tri = t["triangles"]
+
+    # Del = Delaunay(y)
+    # tri = Del.simplices
+    n_c = x.shape[0]
+
+    # 3. Find triangles with **at least one** cell within the "true" frame (i.e. with **at least one** "normal cell")
+    #   (Ignore entries with -1, a quirk of the **triangle** package, which denotes boundary triangles
+    #   Generate a mask -- one_in -- that considers such triangles
+    #   Save the new triangulation by applying the mask -- new_tri
+    tri = tri[(tri != -1).all(axis=1)]
+    one_in = (tri < n_c).any(axis=1)
+    new_tri = tri[one_in]
+
+    # 4. Remove repeats in new_tri
+    #   new_tri contains repeats of the same cells, i.e. in cases where triangles straddle a boundary
+    #   Use remove_repeats function to remove these. Repeats are flagged up as entries with the same trio of
+    #   cell ids, which are transformed by the mod function to account for periodicity. See function for more details
+    n_tri = trf.remove_repeats(new_tri, n_c)
+
+    # 6. Return outputs
+    return n_tri.shape[0], n_tri, trf.get_neighbours(n_tri)
 
 
 @jit(nopython=True)

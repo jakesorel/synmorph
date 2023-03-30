@@ -7,7 +7,9 @@ class ActiveForce:
     Active force class
     ------------------
 
-    Calculates the active forces acting on a cell centroid. This is traditionally phrased in terms of v0 and Dr, being the fixed velocity and the rotational diffusion of the direction.
+    Calculates the active forces acting on a cell centroid. 
+    This is traditionally phrased in terms of v0 and Dr, being the fixed velocity 
+    and the rotational diffusion of the direction.
     """
 
     def __init__(self, tissue, active_params=None):
@@ -24,8 +26,8 @@ class ActiveForce:
         if "alpha_dir" not in self.active_params:
             self.active_params["alpha_dir"] = 0
 
-    def update_active_param(self, param_name, val):
-        self.active_params[param_name] = val
+    # def update_active_param(self, param_name, val):
+    #     self.active_params[param_name] = val
 
     def update_orientation(self, dt):
         """

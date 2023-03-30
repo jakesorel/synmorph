@@ -1,6 +1,7 @@
 import numpy as np
 from numba import jit
 from scipy.sparse import coo_matrix
+from synmorph.utils import grid_xy
 
 """
 Triangulation functions
@@ -14,19 +15,21 @@ Also includes functions to convert an array of cell-properties to the triangulat
 """
 
 
+@jit(nopython=True, parallel=True)
 def order_tris(tri):
     """
     For each triangle (i.e. row in **tri**), order cell ids in ascending order
     :param tri: Triangulation (n_v x 3) np.int32 array
     :return: the ordered triangulation
     """
-    nv = tri.shape[0]
-    for i in range(nv):
-        Min = np.argmin(tri[i])
-        tri[i] = tri[i, Min], tri[i, np.mod(Min + 1, 3)], tri[i, np.mod(Min + 2, 3)]
-    return tri
+    ordered_tri = np.zeros(tri.shape, dtype=np.int32)
+    for i, row in enumerate(tri):
+        ordered_tri[i] = np.roll(row, -np.argmin(row))
+
+    return ordered_tri
 
 
+@jit(nopython=True)
 def remove_repeats(tri, n_c):
     """
     For a given triangulation (nv x 3), remove repeated entries (i.e. rows)
@@ -40,26 +43,31 @@ def remove_repeats(tri, n_c):
     :return: triangulation minus the repeated entries (nv* x 3) (where nv* is the new # vertices).
     """
     tri = order_tris(np.mod(tri, n_c))
-    sorted_tri = tri[np.lexsort(tri.T), :]
-    row_mask = np.append([True], np.any(np.diff(sorted_tri, axis=0), 1))
-    return sorted_tri[row_mask]
+    new_list = []
+    for row in tri:
+        l = list(row)
+        if not l in new_list:
+            new_list.append(l)
+
+    return np.asarray(new_list, dtype=np.int32)
 
 
-def make_y(x, Lgrid_xy):
+@jit(nopython=True)
+def make_y(x, L):
     """
     Makes the (9) tiled set of coordinates used to perform the periodic triangulation.
     :param x: Cell centroids (n_c x 2) np.float32 array
-    :param Lgrid_xy: (9 x 2) array defining the displacement vectors for each of the 9 images of the tiling
+    :param L: Side length of the bounding box
     :return: Tiled set of coordinates (9n_c x 2) np.float32 array
     """
-    n_c = x.shape[0]
-    y = np.empty((n_c * 9, x.shape[1]))
+    n_c, nd = x.shape
+    y = np.zeros((n_c * 9, nd), dtype=np.float32)
     for k in range(9):
-        y[k * n_c:(k + 1) * n_c] = x + Lgrid_xy[k]
+        y[k * n_c : (k + 1) * n_c] = x + L * grid_xy[k]
     return y
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=True)
 def tnorm(x):
     """
     Calculate the L1 norm of a set of vectors that are given in triangulated form:
@@ -122,7 +130,7 @@ def tri_mat_call(mat, tri, direc=-1):
     return tmat
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=True)
 def roll(x, direc=1):
     """
     Jitted equivalent to np.roll(x,-direc,axis=1)
@@ -146,25 +154,13 @@ def roll3(x, direc=1):
     :return:
     """
     x_out = np.empty_like(x)
-    x_out[:, :, 0], x_out[:, :, 1] = roll(x[:, :, 0], direc=direc), roll(x[:, :, 1], direc=direc)
+    x_out[:, :, 0], x_out[:, :, 1] = roll(x[:, :, 0], direc=direc), roll(
+        x[:, :, 1], direc=direc
+    )
     return x_out
 
 
-def CV_matrix(tri_list, n_v, n_c):
-    """
-    Generate cell-vertex boolean matrix. This is currently not in use.
-    :param tri_list:
-    :param n_v:
-    :param n_c:
-    :return:
-    """
-    CV_matrix = np.zeros((n_c, n_v, 3))
-    for i in range(3):
-        CV_matrix[tri_list[:, i], np.arange(n_v), i] = 1
-    return CV_matrix
-
-
-@jit(nopython=True, cache=True)
+@jit(nopython=True)
 def tri_sum(n_c, CV_matrix, tval):
     val_sum = np.zeros(n_c)
     for i in range(3):
@@ -174,7 +170,7 @@ def tri_sum(n_c, CV_matrix, tval):
 
 @jit(nopython=True)
 def cosine_rule(a, b, c):
-    return np.arccos((b ** 2 + c ** 2 - a ** 2) / (2 * b * c))
+    return np.arccos((b**2 + c**2 - a**2) / (2 * b * c))
 
 
 @jit(nopython=True)
@@ -233,16 +229,23 @@ def touter(A, B):
     :param B:
     :return:
     """
-    return np.dstack((np.dstack((A[:, :, 0] * B[:, :, 0], A[:, :, 1] * B[:, :, 0])),
-                      np.dstack((A[:, :, 0] * B[:, :, 1], A[:, :, 1] * B[:, :, 1])))).reshape(-1, 3, 2, 2)
+    return np.dstack(
+        (
+            np.dstack((A[:, :, 0] * B[:, :, 0], A[:, :, 1] * B[:, :, 0])),
+            np.dstack((A[:, :, 0] * B[:, :, 1], A[:, :, 1] * B[:, :, 1])),
+        )
+    ).reshape(-1, 3, 2, 2)
 
 
 @jit(nopython=True)
 def tdet(A):
-    a1,a2,a3 = A[:,:,0]
-    b1,b2,b3 = A[:, :, 1]
-    c1,c2,c3 = A[:,:,2]
-    return a1*(b2*c3 - b3*c2) - a2*(b1*c3 - b3*c1) + a3*(b1*c2 - b2* c1)
+    a1, a2, a3 = A[:, :, 0]
+    b1, b2, b3 = A[:, :, 1]
+    c1, c2, c3 = A[:, :, 2]
+    return (
+        a1 * (b2 * c3 - b3 * c2) - a2 * (b1 * c3 - b3 * c1) + a3 * (b1 * c2 - b2 * c1)
+    )
+
 
 @jit(nopython=True)
 def tidentity(nv):
@@ -269,16 +272,23 @@ def tmatmul(A, B):
     :return:
     """
     AT, BT = A.T, B.T
-    return np.dstack(((AT[0] * BT[0, 0] + AT[1] * BT[1, 0]).T,
-                      (AT[0] * BT[0, 1] + AT[1] * BT[1, 1]).T))
+    return np.dstack(
+        (
+            (AT[0] * BT[0, 0] + AT[1] * BT[1, 0]).T,
+            (AT[0] * BT[0, 1] + AT[1] * BT[1, 1]).T,
+        )
+    )
+
 
 @jit(nopython=True)
 def sum_tri(A):
-    return A[:,0] + A[:,1] + A[:,2]
+    return A[:, 0] + A[:, 1] + A[:, 2]
+
 
 @jit(nopython=True)
 def prod_tri(A):
-    return A[:,0] * A[:,1] * A[:,2]
+    return A[:, 0] * A[:, 1] * A[:, 2]
+
 
 def assemble_tri(tval, tri):
     """
@@ -288,7 +298,10 @@ def assemble_tri(tval, tri):
     :param tri:
     :return:
     """
-    vals = coo_matrix((tval.ravel(), (tri.ravel(), np.zeros_like(tri.ravel()))), shape=(tri.max() + 1, 1))
+    vals = coo_matrix(
+        (tval.ravel(), (tri.ravel(), np.zeros_like(tri.ravel()))),
+        shape=(tri.max() + 1, 1),
+    )
     return vals.toarray().ravel()
 
 
@@ -301,7 +314,10 @@ def assemble_tri3(tval, tri):
     :param tri:
     :return:
     """
-    vals = coo_matrix((tval.ravel(), (np.repeat(tri.ravel(), 2), np.tile((0, 1), tri.size))), shape=(tri.max() + 1, 2))
+    vals = coo_matrix(
+        (tval.ravel(), (np.repeat(tri.ravel(), 2), np.tile((0, 1), tri.size))),
+        shape=(tri.max() + 1, 2),
+    )
     return vals.toarray()
 
 
@@ -330,7 +346,7 @@ def repeat_vec(A):
     return np.dstack((A, A))
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=True)
 def circumcenter(C, L):
     """
     Find the circumcentre (i.e. vertex position) of each triangle in the triangulation.
@@ -347,10 +363,16 @@ def circumcenter(C, L):
     bx, by = rj
     cx, cy = rk
     d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by))
-    ux = ((ax * ax + ay * ay) * (by - cy) + (bx * bx + by * by) * (cy - ay) + (cx * cx + cy * cy) * (
-            ay - by)) / d
-    uy = ((ax * ax + ay * ay) * (cx - bx) + (bx * bx + by * by) * (ax - cx) + (cx * cx + cy * cy) * (
-            bx - ax)) / d
+    ux = (
+        (ax * ax + ay * ay) * (by - cy)
+        + (bx * bx + by * by) * (cy - ay)
+        + (cx * cx + cy * cy) * (ay - by)
+    ) / d
+    uy = (
+        (ax * ax + ay * ay) * (cx - bx)
+        + (bx * bx + by * by) * (ax - cx)
+        + (cx * cx + cy * cy) * (bx - ax)
+    ) / d
     vs = np.empty((ax.size, 2), dtype=np.float64)
     vs[:, 0], vs[:, 1] = ux, uy
     vs = np.mod(vs + disp.T, L)
@@ -408,14 +430,17 @@ def get_neighbours(tri, neigh=None, Range=None):
         tri_i = np.concatenate((tri_sample_flip, tri_sample_flip)).reshape(3, 2)
         for k in range(3):
             if neigh[j, k] == -1:
-                neighb, l = np.nonzero((tri_compare[:, :, 0] == tri_i[k, 0]) * (tri_compare[:, :, 1] == tri_i[k, 1]))
+                neighb, l = np.nonzero(
+                    (tri_compare[:, :, 0] == tri_i[k, 0])
+                    * (tri_compare[:, :, 1] == tri_i[k, 1])
+                )
                 neighb, l = neighb[0], l[0]
                 neigh[j, k] = neighb
                 neigh[neighb, np.mod(2 - l, 3)] = j
     return neigh
 
 
-@jit(nopython=True, cache=True)
+@jit(nopython=True)
 def tri_angles_periodic(x, tri, L):
     """
     Same as **tri_angles** apart from accounts for periodic triangulation (i.e. the **L**)
@@ -436,11 +461,14 @@ def tri_angles_periodic(x, tri, L):
     for i, TRI in enumerate(tri):
         C[i] = x[TRI]
     a2 = (np.mod(C[:, i_b, 0] - C[:, i_c, 0] + L / 2, L) - L / 2) ** 2 + (
-            np.mod(C[:, i_b, 1] - C[:, i_c, 1] + L / 2, L) - L / 2) ** 2
+        np.mod(C[:, i_b, 1] - C[:, i_c, 1] + L / 2, L) - L / 2
+    ) ** 2
     b2 = (np.mod(C[:, :, 0] - C[:, i_c, 0] + L / 2, L) - L / 2) ** 2 + (
-            np.mod(C[:, :, 1] - C[:, i_c, 1] + L / 2, L) - L / 2) ** 2
+        np.mod(C[:, :, 1] - C[:, i_c, 1] + L / 2, L) - L / 2
+    ) ** 2
     c2 = (np.mod(C[:, i_b, 0] - C[:, :, 0] + L / 2, L) - L / 2) ** 2 + (
-            np.mod(C[:, i_b, 1] - C[:, :, 1] + L / 2, L) - L / 2) ** 2
+        np.mod(C[:, i_b, 1] - C[:, :, 1] + L / 2, L) - L / 2
+    ) ** 2
 
     cos_Angles = (b2 + c2 - a2) / (2 * np.sqrt(b2) * np.sqrt(c2))
     Angles = np.arccos(cos_Angles)

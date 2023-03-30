@@ -2,6 +2,7 @@ import _pickle as cPickle
 import bz2
 import pickle
 
+import os
 import numpy as np
 from numba import jit
 
