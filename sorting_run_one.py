@@ -36,8 +36,6 @@ def run_one_simulation(_config, _run, seed):
     
     do_one_simulation(
         ex=ex, 
-        save_data=True,
-        animate=True,
         **_config
     )
 
