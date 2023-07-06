@@ -6,6 +6,7 @@
 #SBATCH -J "AVE_simulations"   # job name
 #SBATCH -n 1
 #SBATCH --partition=cpu
+#SBATCH --cpus-per-task=1
 #SBATCH --mem=20G
 
 eval "$(conda shell.bash hook)"
