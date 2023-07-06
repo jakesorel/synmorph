@@ -51,10 +51,11 @@ if __name__ == "__main__":
     total_sims = N**4
     sims_per_lot = 20
     slurm_index = int(sys.argv[1])
+    print("Slurm index", slurm_index)
     range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
 
     for i in range_to_sample:
-
+        print("Simulating %d"%i)
         [i1,i2,i3, j] = np.unravel_index(i, (N,N,N,N))
 
         W01_range = np.logspace(-3, -1, N)
