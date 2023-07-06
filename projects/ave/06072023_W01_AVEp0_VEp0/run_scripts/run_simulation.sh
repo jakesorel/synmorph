@@ -4,8 +4,6 @@
 
 #SBATCH --time=03-00:00:00   # walltime
 #SBATCH -J "AVE_simulations"   # job name
-#SBATCH --output=../bash_out/output.out
-#SBATCH --error=../bash_out/error.out
 #SBATCH -n 1
 #SBATCH --partition=cpu
 #SBATCH --mem=20G
