@@ -2,7 +2,7 @@
 
 #Submit this script with: sbatch thefilename                                                                                                                                       
 
-#SBATCH --time=01:00:00   # walltime
+#SBATCH --time=01:00:01   # walltime
 #SBATCH -J "AVE2_for_loop_jobs"   # job name                                                                                                                                      
 #SBATCH --output=../bash_out/for_loop_2nd_jobs_output.out                                                                                                                              
 #SBATCH --error=../bash_out/for_loop_2nd_jobs_error.out                                                                                                                                
