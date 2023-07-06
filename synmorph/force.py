@@ -1,5 +1,5 @@
 import numpy as np
-from numba import jit
+from numba import jit,f4,i4
 
 import synmorph.periodic_functions as per
 import synmorph.tri_functions as trf
@@ -76,40 +76,12 @@ class Force:
                                         self.t.mesh.tri)
 
 
-@jit(nopython=True)
+@jit(f4[:,:](f4[:,:],i4[:,:],i4[:,:],i4))
 def get_J(W, tc_types, neigh_tctypes, nc_types):
     return W.take(tc_types.ravel() + nc_types * neigh_tctypes.ravel()).reshape(-1, 3)
 
 
-@jit(nopython=True)
-def get_tF(vp1_vm1, v_vm1, v_vp1, v_x, lm1, lp1, Jm, Jp, kappa_A, kappa_P, A0, P0, A, P, tri):
-    dAdv_j = np.dstack((vp1_vm1[:, :, 1], -vp1_vm1[:, :, 0])) * 0.5  ##shoelace theorem: i.e. derivative of cross product.
-
-    dPdv_j_m = v_vm1 / np.expand_dims(lm1, 2)
-    dPdv_j_p = v_vp1 / np.expand_dims(lp1, 2)
-    dPdv_j = dPdv_j_p + dPdv_j_m
-
-    dtEdv_l_v_j = dPdv_j_m * np.expand_dims(Jm, 2) + dPdv_j_p * np.expand_dims(Jp, 2)
-
-    dtEdA = trf.tri_call(2 * kappa_A * (A - A0), tri)
-    dtEdP = trf.tri_call(2 * kappa_P * (P - P0), tri)
-
-    dtE_dv = np.expand_dims(dtEdA, 2) * dAdv_j + np.expand_dims(dtEdP, 2) * dPdv_j + dtEdv_l_v_j
-    dtE_dv = dtE_dv[:, 0] + dtE_dv[:, 1] + dtE_dv[:, 2]  # sum over the three contributions
-
-    dvdr = get_dvdr(v_x)  # order is wrt cell i
-
-    dtE_dv = np.expand_dims(dtE_dv, 2)
-
-    dEdr_x = dtE_dv[:, 0] * dvdr[:, :, 0, 0] + dtE_dv[:, 1] * dvdr[:, :, 0, 1]
-    dEdr_y = dtE_dv[:, 0] * dvdr[:, :, 1, 0] + dtE_dv[:, 1] * dvdr[:, :, 1, 1]
-
-    dEdr = np.dstack((dEdr_x, dEdr_y))
-    F = - dEdr
-    return F
-
-
-@jit(nopython=True)
+@jit(f4[:,:,:,:](f4[:,:,:]))
 def get_dvdr(v_x):
     """
 
@@ -125,11 +97,14 @@ def get_dvdr(v_x):
     :return: Jacobian for each cell of each triangulation (n_v x 3 x 2 x 2) np.float32 array (where the first 2 dims follow the order of the triangulation.
     """
     x_v = -v_x
-    dvdr = np.empty(x_v.shape + (2,))
+    dvdr = np.empty(x_v.shape + (2,),dtype=np.float32)
     for i in range(3):
-        ax, ay = x_v[:, np.mod(i, 3), 0], x_v[:, np.mod(i, 3), 1]
-        bx, by = x_v[:, np.mod(i + 1, 3), 0], x_v[:, np.mod(i + 1, 3), 1]
-        cx, cy = x_v[:, np.mod(i + 2, 3), 0], x_v[:, np.mod(i + 2, 3), 1]
+        ax = x_v[:, i%3, 0]
+        ay = x_v[:, i%3, 1]
+        bx = x_v[:, (i + 1) % 3, 0]
+        by = x_v[:, np.mod(i + 1, 3), 1]
+        cx = x_v[:, np.mod(i + 2, 3), 0]
+        cy = x_v[:, np.mod(i + 2, 3), 1]
         # dhx/drx
         dvdr[:, i, 0, 0] = (ax * (by - cy)) / ((ay - by) * cx + ax * (by - cy) + bx * (-ay + cy)) - ((by - cy) * (
                 (ax ** 2 + ay ** 2) * (by - cy) + (bx ** 2 + by ** 2) * (-ay + cy) + (ay - by) * (
@@ -155,7 +130,35 @@ def get_dvdr(v_x):
     return dvdr
 
 
-@jit(nopython=True)
+
+@jit(f4[:,:,:](f4[:,:,:],f4[:,:,:],f4[:,:,:],f4[:,:,:],f4[:,:],f4[:,:],f4[:,:],f4[:,:],f4[:],f4[:],f4[:],f4[:],f4[:],f4[:],i4[:,:]))
+def get_tF(vp1_vm1, v_vm1, v_vp1, v_x, lm1, lp1, Jm, Jp, kappa_A, kappa_P, A0, P0, A, P, tri):
+    dAdv_j = np.dstack((vp1_vm1[:, :, 1], -vp1_vm1[:, :, 0])) * 0.5  ##shoelace theorem: i.e. derivative of cross product.
+
+    dPdv_j_m = v_vm1 / np.expand_dims(lm1, 2)
+    dPdv_j_p = v_vp1 / np.expand_dims(lp1, 2)
+    dPdv_j = dPdv_j_p + dPdv_j_m
+
+    dtEdv_l_v_j = dPdv_j_m * np.expand_dims(Jm, 2) + dPdv_j_p * np.expand_dims(Jp, 2)
+
+    dtEdA = trf.tri_call(2 * kappa_A * (A - A0), tri)
+    dtEdP = trf.tri_call(2 * kappa_P * (P - P0), tri)
+
+    dtE_dv = np.expand_dims(dtEdA, 2) * dAdv_j + np.expand_dims(dtEdP, 2) * dPdv_j + dtEdv_l_v_j
+    dtE_dv = dtE_dv[:, 0] + dtE_dv[:, 1] + dtE_dv[:, 2]  # sum over the three contributions
+
+    dvdr = get_dvdr(v_x)  # order is wrt cell i
+    dtE_dv = np.expand_dims(dtE_dv, 2)
+
+    dEdr_x = dtE_dv[:, 0] * dvdr[:, :, 0, 0] + dtE_dv[:, 1] * dvdr[:, :, 0, 1]
+    dEdr_y = dtE_dv[:, 0] * dvdr[:, :, 1, 0] + dtE_dv[:, 1] * dvdr[:, :, 1, 1]
+
+    dEdr = np.dstack((dEdr_x, dEdr_y))
+
+    F = - dEdr
+    return F.astype(np.float32)
+
+@jit(f4[:,:,:](f4[:,:,:],f4,f4,f4))
 def get_tFsoft(tx, a, k, L):
     """
     Additional "soft" pair-wise repulsion at short range to prevent unrealistic and sudden changes in triangulation.
@@ -179,11 +182,11 @@ def get_tFsoft(tx, a, k, L):
     rij = per.per3(tx - rj, L, L)
     lij = trf.tnorm(rij)
     norm_ij = rij / np.expand_dims(lij, 2)
-    tFsoft_ij = np.expand_dims(-k * (lij - 2 * a) * (lij < 2 * a), 2) * norm_ij
+    tFsoft_ij = (np.expand_dims(-k * (lij - 2 * a) * (lij < 2 * a), 2) * norm_ij).astype(np.float32)
     tFsoft = tFsoft_ij - trf.roll3(tFsoft_ij, -1)
     return tFsoft
 
 
-@jit(nopython=True)
+@jit(f4[:,:](f4[:,:],f4[:,:]))
 def sum_F(F, F_soft):
     return F + F_soft

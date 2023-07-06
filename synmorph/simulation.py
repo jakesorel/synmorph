@@ -62,6 +62,7 @@ class Simulation:
         else:
             self.t = tissue
 
+
         ###To do: include functionality to load a tissue pickle file.
         self.t_span = None
         self.t_span_save = None
@@ -83,6 +84,7 @@ class Simulation:
             self.grn = self.grn(self.t, grn_params)
             self.var_save = np.zeros((self.x_save.shape[0], self.x_save.shape[1], self.grn.nvar))
         ###
+
 
         self.date = datetime.now().strftime("%m-%d-%Y-%H-%M-%S")
         self.name = self.save_options["name"] if self.save_options["name"] is not None else self.date

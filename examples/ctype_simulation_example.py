@@ -3,14 +3,16 @@ import synmorph as sm
 import time
 
 
-tissue_params = {"L": 9,
-                 "A0": 1,
+
+
+tissue_params = {"L": 9.,
+                 "A0": 1.,
                  "P0": 3.81,
                  "kappa_A": 1,
                  "kappa_P": 0.1,
-                 "W": np.array(((0, 0.00762), (0.00762, 0))),
-                 "a": 0,
-                 "k": 0}
+                 "W": np.array(((0, 0.00762), (0.00762, 0))).astype(np.float32),
+                 "a": 0.,
+                 "k": 0.}
 active_params = {"v0": 1e-1,
                  "Dr": 1e-1}
 init_params = {"init_noise": 0.00005,

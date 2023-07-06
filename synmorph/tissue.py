@@ -3,7 +3,7 @@ import bz2
 import pickle
 
 import numpy as np
-from numba import jit
+from numba import jit,f4,i4
 
 import synmorph.tri_functions as trf
 from synmorph.active_force import ActiveForce
@@ -113,7 +113,7 @@ class Tissue:
         x += 1e-3
         np.argsort(x.max(axis=1))
 
-        x = x[np.argsort(x.max(axis=1))[:int(self.L ** 2 / self.A0)]]
+        x = x[np.argsort(x.max(axis=1))[:int(self.L ** 2 / self.A0)]].astype(np.float32)
         self.mesh = Mesh(x, self.L, run_options=run_options)
 
     def assign_ctypes(self):
@@ -138,9 +138,9 @@ class Tissue:
         Here, the CW and CCW (p,m) cell types can be easily deduced by the roll function.
         :return:
         """
-        self.tc_types = trf.tri_call(self.c_types, self.mesh.tri)
-        self.tc_typesp = trf.roll(self.tc_types, -1)
-        self.tc_typesm = trf.roll(self.tc_types, 1)
+        self.tc_types = trf.tri_call_int(self.c_types, self.mesh.tri)
+        self.tc_typesp = trf.roll_int(self.tc_types, -1)
+        self.tc_typesm = trf.roll_int(self.tc_types, 1)
 
     def get_forces(self):
         """
@@ -273,6 +273,6 @@ def sum_forces(F, aF):
     return F + aF
 
 
-@jit(nopython=True)
+@jit(f4[:](f4,i4))
 def _vectorify(x, n):
-    return x * np.ones(n)
+    return (x * np.ones(n)).astype(np.float32)

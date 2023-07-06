@@ -1,7 +1,11 @@
 import numpy as np
-from numba import f4,i4
+from numba import f4,i4,njit
 from numba import njit as jit
 from scipy.sparse import coo_matrix
+from numba.pycc import CC
+
+cc = CC('tri_functions')
+
 
 """
 Triangulation functions
@@ -15,7 +19,7 @@ Also includes functions to convert an array of cell-properties to the triangulat
 """
 
 
-@jit(f4[:, :](f4[:, :], i4),cache=True)
+@cc.export('roll','f4[:, :](f4[:, :], i4)')
 def roll(x, direc=1):
     """
     Jitted equivalent to np.roll(x,-direc,axis=1)
@@ -31,7 +35,7 @@ def roll(x, direc=1):
     return return_val
 
 
-@jit(i4[:, :](i4[:, :], i4),cache=True)
+@cc.export('roll_int','i4[:, :](i4[:, :], i4)')
 def roll_int(x, direc):
     """
     Jitted equivalent to np.roll(x,-direc,axis=1)
@@ -47,7 +51,7 @@ def roll_int(x, direc):
     return return_val
 
 
-@jit(f4[:, :,:](f4[:, :,:], i4),cache=True)
+@cc.export('f4[:, :,:](f4[:, :,:], i4)')
 def roll3(x, direc):
     """
     Like roll, but when x has shape (nv x 3 x 2) ie is a vector, rather than scalar, quantity.
@@ -61,6 +65,7 @@ def roll3(x, direc):
 
 
 
+@jit(i4[:,:](i4[:,:]))
 def order_tris(tri):
     """
     For each triangle (i.e. row in **tri**), order cell ids in ascending order
@@ -72,7 +77,6 @@ def order_tris(tri):
         Min = np.argmin(tri[i])
         tri[i] = tri[i, Min], tri[i, np.mod(Min + 1, 3)], tri[i, np.mod(Min + 2, 3)]
     return tri
-
 
 def remove_repeats(tri, n_c):
     """
