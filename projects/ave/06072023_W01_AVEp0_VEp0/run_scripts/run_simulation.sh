@@ -13,7 +13,7 @@ eval "$(conda shell.bash hook)"
 source activate synmorph
 
 while true; do
-    python python run_multiple_simulation.py ${SLURM_ARRAY_TASK_ID}
+    python run_multiple_simulation.py ${SLURM_ARRAY_TASK_ID}
     exit_code=$?
 
     if [ $exit_code -eq 0 ]; then
