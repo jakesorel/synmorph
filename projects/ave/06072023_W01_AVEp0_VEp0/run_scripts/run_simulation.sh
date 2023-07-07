@@ -12,5 +12,5 @@
 eval "$(conda shell.bash hook)"
 source activate synmorph
 
-python run_single_simulation.py ${SLURM_ARRAY_TASK_ID}
+python run_multiple_simulation.py ${SLURM_ARRAY_TASK_ID}
 #python ../analysis_scripts/run_analysis.py ${SLURM_ARRAY_TASK_ID}
