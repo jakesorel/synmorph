@@ -60,7 +60,7 @@ if __name__ == "__main__":
 
         def run_job(i):
             t_0 = time.time()
-            if not os.path.exists("06072023_W01_AVEp0_VEp0_%d_simulation.h5.gz"%i):
+            if not os.path.exists("../scan_results/06072023_W01_AVEp0_VEp0_%d_simulation.h5.gz"%i):
                 print("Simulating %d" % i)
                 [i1, i2, i3, j] = np.unravel_index(i, (N, N, N, N))
 
@@ -153,6 +153,7 @@ if __name__ == "__main__":
         Parallel(n_jobs=cpu_count())(delayed(run_job)(i) for i in range_to_sample)
         t_tot_1 = time.time()
         print("400 simulations completed in ",t_tot_0-t_tot_0,"s")
+        sys.exit(0)
 
     except TerminatedWorkerError:
         # Handle the error and initiate a restart
