@@ -148,6 +148,8 @@ if __name__ == "__main__":
                 out_file.close()
                 t_1 = time.time()
                 print("Simulation completed in ", np.round(t_1-t_0),"s")
+            else:
+                print("Simulation %d exists, skipping"%i)
 
         t_tot_0 = time.time()
         Parallel(n_jobs=cpu_count())(delayed(run_job)(i) for i in range_to_sample)
@@ -159,3 +161,13 @@ if __name__ == "__main__":
         # Handle the error and initiate a restart
         print("TerminatedWorkerError occurred. Restarting...")
         sys.exit(1)  # Or any other action to restart the execution
+
+
+"""
+Note, may need to do some tidying up of the dataset. 
+
+Need to deal with instances where the code crashed mid export or mid zip. 
+
+mid export --> .h5 present, but .gz not present. Here, need to repeat the simulation
+mid zip --> .h5 and .gz both present. Here, need to repeat the zipping. 
+"""
