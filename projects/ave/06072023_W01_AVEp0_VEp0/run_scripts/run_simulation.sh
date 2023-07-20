@@ -18,17 +18,14 @@ exit_code=$?
 if [ $exit_code -eq 0 ]; then
     # Script completed successfully
     echo "Script completed successfully"
-    break
 elif [ $exit_code -eq 1 ]; then
     # Restart the script due to TerminatedWorkerError
     echo "Trying without equiangulation..."
     python run_multiple_simulation.py ${SLURM_ARRAY_TASK_ID} 0
     exit_code=$?
-    break
 else
     # Other non-zero exit code, handle as needed
     echo "Script encountered an error. Exiting..."
-    break
 fi
 
 
