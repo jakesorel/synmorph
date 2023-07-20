@@ -60,7 +60,7 @@ def run_simulation(path_name):
                         run_options=scan_dict["run_options"],
                         save_options=scan_dict["save_options"])
 
-    sim.simulate(progress_bar=False)
+    sim.simulate(progress_bar=True)
     return sim
 
 
@@ -182,30 +182,29 @@ if __name__ == "__main__":
             else:
                 print("Simulation %d exists, skipping"%i)
 
-        run_job(range_to_sample[0],True)
-
-        @exit_after(500)
-        def run_job_timed(i):
-            return run_job(i,True)
-
-        @exit_after(1800)
-        def run_job_timed_no_equiangulate(i):
-            return run_job(i,False)
-
+        # @exit_after(500)
+        # def run_job_timed(i):
+        #     return run_job(i,True)
+        #
+        # @exit_after(1800)
+        # def run_job_timed_no_equiangulate(i):
+        #     return run_job(i,False)
+        #
 
         t_tot_0 = time.time()
         # Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i) for i in range_to_sample)
 
 
         for i in range_to_sample:
-            try:
-                run_job_timed(i)
-            except:
-                print("Equiangulation timed out")
-                try:
-                    run_job_timed_no_equiangulate(i)
-                except:
-                    print("Forced triangulation timed out too.. giving up")
+            run_job(i,equiangulate=True)
+            # try:
+            #     run_job_timed(i)
+            # except:
+            #     print("Equiangulation timed out")
+            #     try:
+            #         run_job_timed_no_equiangulate(i)
+            #     except:
+            #         print("Forced triangulation timed out too.. giving up")
 
         t_tot_1 = time.time()
         print("400 simulations completed in ",t_tot_0-t_tot_0,"s")
