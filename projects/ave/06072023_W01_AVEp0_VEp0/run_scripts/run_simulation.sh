@@ -7,28 +7,30 @@
 #SBATCH -n 1
 #SBATCH --partition=cpu
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=100G
+#SBATCH --mem=32G
 
 eval "$(conda shell.bash hook)"
 source activate synmorph
 
-while true; do
-    python run_multiple_simulation.py ${SLURM_ARRAY_TASK_ID}
-    exit_code=$?
+python run_multiple_simulation.py ${SLURM_ARRAY_TASK_ID} 1
+exit_code=$?
 
-    if [ $exit_code -eq 0 ]; then
-        # Script completed successfully
-        echo "Script completed successfully"
-        break
-    elif [ $exit_code -eq 1 ]; then
-        # Restart the script due to TerminatedWorkerError
-        echo "Restarting script..."
-    else
-        # Other non-zero exit code, handle as needed
-        echo "Script encountered an error. Exiting..."
-        break
-    fi
-done
+if [ $exit_code -eq 0 ]; then
+    # Script completed successfully
+    echo "Script completed successfully"
+    break
+elif [ $exit_code -eq 1 ]; then
+    # Restart the script due to TerminatedWorkerError
+    echo "Trying without equiangulation..."
+    python run_multiple_simulation.py ${SLURM_ARRAY_TASK_ID} 0
+    exit_code=$?
+    break
+else
+    # Other non-zero exit code, handle as needed
+    echo "Script encountered an error. Exiting..."
+    break
+fi
+
 
 
 #python ../analysis_scripts/run_analysis.py ${SLURM_ARRAY_TASK_ID}

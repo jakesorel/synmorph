@@ -103,7 +103,7 @@ if __name__ == "__main__":
                                  "Dr": 5e-3}
                 init_params = {"init_noise": 0.1,
                                "c_type_proportions": (1.0, 0)}
-                run_options = {"equiangulate": True,
+                run_options = {"equiangulate": bool(sys.argv[2]),
                                "equi_nkill": 10}
                 simulation_params = {"dt": 0.01,
                                      "tfin": 300,
@@ -152,7 +152,7 @@ if __name__ == "__main__":
                 print("Simulation %d exists, skipping"%i)
 
         t_tot_0 = time.time()
-        Parallel(n_jobs=cpu_count())(delayed(run_job)(i) for i in range_to_sample)
+        Parallel(n_jobs=16)(delayed(run_job)(i) for i in range_to_sample)
         t_tot_1 = time.time()
         print("400 simulations completed in ",t_tot_0-t_tot_0,"s")
         sys.exit(0)
