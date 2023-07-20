@@ -2,7 +2,7 @@
 
 #Submit this script with: sbatch thefilename
 
-#SBATCH --time=00-01:00:00   # walltime
+#SBATCH --time=02-00:00:00   # walltime
 #SBATCH -J "AVE_simulations"   # job name
 #SBATCH -n 1
 #SBATCH --partition=cpu
