@@ -59,7 +59,7 @@ def run_simulation(path_name):
                         run_options=scan_dict["run_options"],
                         save_options=scan_dict["save_options"])
 
-    sim.simulate(progress_bar=True)
+    sim.simulate(progress_bar=False)
     return sim
 
 
@@ -181,9 +181,7 @@ if __name__ == "__main__":
             else:
                 print("Simulation %d exists, skipping"%i)
 
-        @exit_after(25)
-        def run_job_timed(i):
-            return run_job(i)
+        run_job(range_to_sample[0],True)
 
         @exit_after(500)
         def run_job_timed(i):
