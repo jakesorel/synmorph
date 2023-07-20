@@ -15,6 +15,36 @@ from joblib import Parallel, delayed
 from joblib.externals.loky.process_executor import TerminatedWorkerError
 from multiprocessing import cpu_count
 
+try:
+    import thread
+except ImportError:
+    import _thread as thread
+
+
+def quit_function(fn_name):
+    # print to stderr, unbuffered in Python 2.
+    print('{0} took too long'.format(fn_name), file=sys.stderr)
+    sys.stderr.flush()  # Python 3 stderr is likely buffered.
+    thread.interrupt_main()  # raises KeyboardInterrupt
+
+def exit_after(s):
+    '''
+    use as decorator to exit process if
+    function takes longer than s seconds
+    '''
+    def outer(fn):
+        def inner(*args, **kwargs):
+            timer = threading.Timer(s, quit_function, args=[fn.__name__])
+            timer.start()
+            try:
+                result = fn(*args, **kwargs)
+            finally:
+                timer.cancel()
+            return result
+        return inner
+    return outer
+
+
 def run_simulation(path_name):
     pikd = open(path_name, 'rb')
     scan_dict = pickle.load(pikd)
@@ -53,12 +83,12 @@ if __name__ == "__main__":
 
         N = 20
         total_sims = N**4
-        sims_per_lot = 400
+        sims_per_lot = 20
         slurm_index = int(sys.argv[1])
         print("Slurm index", slurm_index)
         range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
 
-        def run_job(i):
+        def run_job(i,equiangulate=True):
             t_0 = time.time()
             if not os.path.exists("../scan_results/06072023_W01_AVEp0_VEp0_%d_simulation.h5.gz"%i):
                 print("Simulating %d" % i)
@@ -103,7 +133,7 @@ if __name__ == "__main__":
                                  "Dr": 5e-3}
                 init_params = {"init_noise": 0.1,
                                "c_type_proportions": (1.0, 0)}
-                run_options = {"equiangulate": bool(sys.argv[2]),
+                run_options = {"equiangulate": equiangulate,
                                "equi_nkill": 10}
                 simulation_params = {"dt": 0.01,
                                      "tfin": 300,
@@ -151,8 +181,33 @@ if __name__ == "__main__":
             else:
                 print("Simulation %d exists, skipping"%i)
 
+        @exit_after(25)
+        def run_job_timed(i):
+            return run_job(i)
+
+        @exit_after(500)
+        def run_job_timed(i):
+            return run_job(i,True)
+
+        @exit_after(1800)
+        def run_job_timed_no_equiangulate(i):
+            return run_job(i,False)
+
+
         t_tot_0 = time.time()
-        Parallel(n_jobs=16,backend="loky", prefer="threads", lazy=False)(delayed(run_job)(i) for i in range_to_sample)
+        # Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i) for i in range_to_sample)
+
+
+        for i in range_to_sample:
+            try:
+                run_job_timed(i)
+            except:
+                print("Equiangulation timed out")
+                try:
+                    run_job_timed_no_equiangulate(i)
+                except:
+                    print("Forced triangulation timed out too.. giving up")
+
         t_tot_1 = time.time()
         print("400 simulations completed in ",t_tot_0-t_tot_0,"s")
         sys.exit(0)
