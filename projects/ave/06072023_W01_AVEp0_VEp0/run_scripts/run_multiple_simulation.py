@@ -192,19 +192,19 @@ if __name__ == "__main__":
         #
 
         t_tot_0 = time.time()
-        # Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i) for i in range_to_sample)
+        Parallel(n_jobs=16,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
 
-
-        for i in range_to_sample:
-            run_job(i,equiangulate=True)
-            # try:
-            #     run_job_timed(i)
-            # except:
-            #     print("Equiangulation timed out")
-            #     try:
-            #         run_job_timed_no_equiangulate(i)
-            #     except:
-            #         print("Forced triangulation timed out too.. giving up")
+        #
+        # for i in range_to_sample:
+        #     run_job(i,equiangulate=True)
+        #     # try:
+        #     #     run_job_timed(i)
+        #     # except:
+        #     #     print("Equiangulation timed out")
+        #     #     try:
+        #     #         run_job_timed_no_equiangulate(i)
+        #     #     except:
+        #     #         print("Forced triangulation timed out too.. giving up")
 
         t_tot_1 = time.time()
         print("400 simulations completed in ",t_tot_0-t_tot_0,"s")
