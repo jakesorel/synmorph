@@ -152,7 +152,7 @@ if __name__ == "__main__":
                 print("Simulation %d exists, skipping"%i)
 
         t_tot_0 = time.time()
-        Parallel(n_jobs=16)(delayed(run_job)(i) for i in range_to_sample)
+        Parallel(n_jobs=16,backend="loky", prefer="threads", lazy=False)(delayed(run_job)(i) for i in range_to_sample)
         t_tot_1 = time.time()
         print("400 simulations completed in ",t_tot_0-t_tot_0,"s")
         sys.exit(0)
