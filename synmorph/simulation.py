@@ -109,7 +109,7 @@ class Simulation:
         # if not os.path.exists(self.save_dir_plots):
         #     os.mkdir(self.save_dir_plots)
         #
-        # self.save_dir_pickled = self.save_options["result_dir"]
+        self.save_dir_pickled = self.save_options["result_dir"]
 
         if "tinit" in self.simulation_params:
             if self.simulation_params["tinit"] >0:

@@ -7,7 +7,7 @@
 #SBATCH -n 1
 #SBATCH --partition=cpu
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=64G
+#SBATCH --mem=32G
 
 eval "$(conda shell.bash hook)"
 source activate synmorph
