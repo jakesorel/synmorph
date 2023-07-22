@@ -133,6 +133,16 @@ class Grn_ave_couple_orientation:
             self.t.active.active_params["angle0"] = np.random.uniform(0, np.pi * 2, self.t.mesh.n_c)
         self.x = self.t.mesh.x
 
+    def update_grn_initialisation(self, dt, dt_grn):
+        """
+        GRN update strategy. Typically utilizing odeint.
+
+        dt is the time-step of the SPV algorithm,
+        dt_grn is the time-step of the GRN updating algorithm. Typically these can just be the same.
+        Note that at the moment, the following must hold: dt_grn <= dt
+        """
+        self.t.mesh.x[self.t.c_types == 3] = self.x0_bound
+        self.x = self.t.mesh.x
 
         # self.nvar = 2
         # self.var = np.zeros((self.t.mesh.n_c,2))

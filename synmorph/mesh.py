@@ -132,7 +132,7 @@ class Mesh:
         """
         V = trf.circumcenter(self.tx, self.L)
         return V
-
+    #
     def _triangulate(self):
         """
         Calculates the periodic triangulation on the set of points x.
@@ -154,7 +154,16 @@ class Mesh:
         # 1. Tile cell positions 9-fold to perform the periodic triangulation
         #   Calculates y from x. y is (9nc x 2) matrix, where the first (nc x 2) are the "true" cell positions,
         #   and the rest are translations
-        y = trf.make_y(self.x, self.L * self.grid_xy)
+
+        if type(self.A) is np.ndarray:
+            maxA = np.max(self.A)
+            max_d = np.sqrt(maxA/np.pi)*5 ##2.5 cell diameters on average
+            if not max_d > self.L/50:
+                max_d = self.L
+        else:
+            max_d = self.L
+
+        y,dictionary = generate_triangulation_mask(self.x.astype(np.float32),self.L,max_d)
 
         # 2. Perform the triangulation on y
         #   The **triangle** package (tr) returns a dictionary, containing the triangulation.
@@ -179,16 +188,74 @@ class Mesh:
         #   new_tri contains repeats of the same cells, i.e. in cases where triangles straddle a boundary
         #   Use remove_repeats function to remove these. Repeats are flagged up as entries with the same trio of
         #   cell ids, which are transformed by the mod function to account for periodicity. See function for more details
-        n_tri = trf.remove_repeats(new_tri, n_c)
+
+        n_tri = dictionary[new_tri]
+        n_tri = trf.remove_repeats(n_tri, n_c)
 
         # tri_same = (self.tri == n_tri).all()
 
         # 6. Store outputs
         self.n_v = n_tri.shape[0]
         self.tri = n_tri
-
         self.neigh = trf.get_neighbours(n_tri)
-
+    #
+    #
+    # def _triangulate(self):
+    #     """
+    #     Calculates the periodic triangulation on the set of points x.
+    #
+    #     Stores:
+    #         self.n_v = number of vertices (int32)
+    #         self.tri = triangulation of the vertices (nv x 3) matrix.
+    #             Cells are stored in CCW order. As a convention, the first entry has the smallest cell id
+    #             (Which entry comes first is, in and of itself, arbitrary, but is utilised elsewhere)
+    #         self.vs = coordinates of each vertex; (nv x 2) matrix
+    #         self.neigh = vertex ids (i.e. rows of self.vs) corresponding to the 3 neighbours of a given vertex (nv x 3).
+    #             In CCW order, where vertex i {i=0..2} is opposite cell i in the corresponding row of self.tri
+    #         self.neighbours = coordinates of each neighbouring vertex (nv x 3 x 2) matrix
+    #
+    #     :param x: (nc x 2) matrix with the coordinates of each cell
+    #     """
+    #
+    #
+    #     # 1. Tile cell positions 9-fold to perform the periodic triangulation
+    #     #   Calculates y from x. y is (9nc x 2) matrix, where the first (nc x 2) are the "true" cell positions,
+    #     #   and the rest are translations
+    #     y = trf.make_y(self.x, self.L * self.grid_xy)
+    #
+    #     # 2. Perform the triangulation on y
+    #     #   The **triangle** package (tr) returns a dictionary, containing the triangulation.
+    #     #   This triangulation is extracted and saved as tri
+    #     t = tr.triangulate({"vertices": y})
+    #
+    #     tri = t["triangles"]
+    #
+    #     # Del = Delaunay(y)
+    #     # tri = Del.simplices
+    #     n_c = self.x.shape[0]
+    #
+    #     # 3. Find triangles with **at least one** cell within the "true" frame (i.e. with **at least one** "normal cell")
+    #     #   (Ignore entries with -1, a quirk of the **triangle** package, which denotes boundary triangles
+    #     #   Generate a mask -- one_in -- that considers such triangles
+    #     #   Save the new triangulation by applying the mask -- new_tri
+    #     tri = tri[(tri != -1).all(axis=1)]
+    #     one_in = (tri < n_c).any(axis=1)
+    #     new_tri = tri[one_in]
+    #
+    #     # 4. Remove repeats in new_tri
+    #     #   new_tri contains repeats of the same cells, i.e. in cases where triangles straddle a boundary
+    #     #   Use remove_repeats function to remove these. Repeats are flagged up as entries with the same trio of
+    #     #   cell ids, which are transformed by the mod function to account for periodicity. See function for more details
+    #
+    #     n_tri = trf.remove_repeats(new_tri, n_c)
+    #
+    #     # tri_same = (self.tri == n_tri).all()
+    #
+    #     # 6. Store outputs
+    #     self.n_v = n_tri.shape[0]
+    #     self.tri = n_tri
+    #     self.neigh = trf.get_neighbours(n_tri)
+    #
 
     def triangulate(self):
         if type(self.k2s) is list or not self.run_options["equiangulate"]:
@@ -398,6 +465,18 @@ def update_mesh(quartet_info, tri, neigh, k2s):
     return tri_new, neigh_new, k2s_new
 
 
+
+
+@jit((f4[:, :], i4[:, :], i4[:, :], i4[:, :], f4[:, :, :], f4, i4, f4[:, :], i4),cache=True)
+def needs_re_triangulating(x, _tri, _neigh, _k2s, tx0, L, ntri, vs0, max_runs=10):
+    tri, neigh, k2s = _tri.copy(), _neigh.copy(), _k2s.copy()
+    # lv_x = trf.tnorm(disp23(vs0, tx0, L))
+    v_x = per.per(vs0 - tx0[:, 0], L, L)
+    lv_x = np.sqrt(v_x[..., 0] ** 2 + v_x[..., 1] ** 2)
+
+    mask = get_retriangulation_mask(x, tri, lv_x, neigh, k2s, ntri, vs0, L)
+    return mask.any()
+
 @jit((f4[:, :], i4[:, :], i4[:, :], i4[:, :], f4[:, :, :], f4, i4, f4[:, :], i4),cache=True)
 def re_triangulate(x, _tri, _neigh, _k2s, tx0, L, ntri, vs0, max_runs=10):
     tri, neigh, k2s = _tri.copy(), _neigh.copy(), _k2s.copy()
@@ -436,8 +515,31 @@ def re_triangulate(x, _tri, _neigh, _k2s, tx0, L, ntri, vs0, max_runs=10):
                 continue_loop = False
             n_runs += 1
     return tri, neigh, k2s, failed
-#
-#
+
+@jit(nopython=True)
+def generate_triangulation_mask(x,L,max_d):
+    ys = np.zeros((0,2),dtype=np.float32)
+    dictionary = np.zeros((0),dtype=np.int32)
+    for i in [0,-1,1]:
+        for j in [0,-1,1]:
+            y = (x + np.array((i, j)) * L).astype(np.float32)
+            if j == 0:
+                if i == 0:
+                    mask = np.ones_like(x[:,0],dtype=np.bool_)
+                else:
+                    val = L*(1-i)/2
+                    mask = np.abs(x[:,0]-val)<max_d
+            elif i == 0:
+                val = L * (1 - j) / 2
+                mask = np.abs(x[:, 1] - val) < max_d
+            else:
+                val_x = L * (1 - i) / 2
+                val_y = L * (1 - j) / 2
+                mask = np.sqrt((x[:,0]-val_x)**2 + (x[:,1]-val_y)**2) < max_d
+            ys = np.row_stack((ys,y[mask]))
+            dictionary = np.concatenate((dictionary,np.nonzero(mask)[0].astype(np.int32)))
+    return ys,dictionary
+
 # @jit(nopython=True)
 # def re_triangulate(x,_tri,_neigh,_k2s,L,ntri):
 #     tri,neigh,k2s = _tri.copy(),_neigh.copy(),_k2s.copy()

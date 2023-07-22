@@ -67,7 +67,7 @@ def run_simulation(path_name):
 if __name__ == "__main__":
     try:
 
-        base_name = "06072023_W01_AVEp0_VEp0"
+        base_name = "22072023_W01_AVEp0_VEp0"
 
         if not os.path.exists("../scan_summary/%s_full_summary.csv" % base_name):
             with open("../scan_summary/%s_full_summary.csv" % base_name, "w+") as g:
@@ -83,15 +83,15 @@ if __name__ == "__main__":
                 fcntl.flock(g, fcntl.LOCK_UN)
 
         N = 20
-        total_sims = N**4
-        sims_per_lot = 20
+        total_sims = N**3
+        sims_per_lot = 400
         slurm_index = int(sys.argv[1])
         print("Slurm index", slurm_index)
         range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
 
         def run_job(i,equiangulate=True):
             t_0 = time.time()
-            if not os.path.exists("../scan_results/06072023_W01_AVEp0_VEp0_%d_simulation.h5.gz"%i):
+            if not os.path.exists("../scan_results/22072023_W01_AVEp0_VEp0_%d_simulation.h5.gz"%i):
                 print("Simulating %d" % i)
                 [i1, i2, i3, j] = np.unravel_index(i, (N, N, N, N))
 
@@ -121,23 +121,23 @@ if __name__ == "__main__":
                     g.write(scan_dict_name + "\n")
                     fcntl.flock(g, fcntl.LOCK_UN)
 
-                tissue_params = {"L": 15.,
+                tissue_params = {"L": 16.8,
                                  "A0": 1.,
-                                 "P0": 3.6,
+                                 "P0": 3.2,
                                  "kappa_A": 1.,
                                  "kappa_P": lambda_P,
-                                 "W": (np.array(((0.0, W01, W01, 0.1), (W01, 0, 0, 0.1), (W01, 0, 0, 0.1),
-                                                 (0.1, 0.1, 0.1, 0.1))) * 1).astype(np.float32),
+                                 "W": (np.array(((0.0, W01, W01, 0.1), (W01, 0, 0, 0.5), (W01, 0, 0, 0.5),
+                                                 (0.1, 0.5, 0.5, 0.1))) * 1).astype(np.float32),
                                  "a": 0.,
                                  "k": 0.}
                 active_params = {"v0": 2e-1,
                                  "Dr": 5e-3}
                 init_params = {"init_noise": 0.1,
                                "c_type_proportions": (1.0, 0)}
-                run_options = {"equiangulate": equiangulate,
+                run_options = {"equiangulate": True,
                                "equi_nkill": 10}
-                simulation_params = {"dt": 0.01,
-                                     "tfin": 300,
+                simulation_params = {"dt": 0.10,
+                                     "tfin": 100,
                                      "tskip": 10,
                                      "dt_grn": 0.025,
                                      "grn_sim": "grn_ave_couple_orientation",
@@ -149,18 +149,19 @@ if __name__ == "__main__":
                               "AVE_v0": AVE_v0,
                               "non_AVE_v0": 0.,
                               "AVE_alpha0": -np.pi / 2,
-                              "boundary_frac": 0.08,
+                              "boundary_frac": 0.20,
                               "AVE_A0": 0.54,
                               "exe_frac": 0.0,
                               "AVE_p0": AVE_p0,
                               "nonAVE_p0": VE_p0}
                 save_options = {"save": "hdf5",
                                 "result_dir": "../scan_results",
-                                "name": scan_dict_name,
+                                "name": "AVE_example_full",
                                 "compressed": True}
 
                 scan_dict = {"tissue_params": tissue_params, "active_params": active_params, "init_params": init_params,
-                             "run_options": run_options, "simulation_params": simulation_params, "grn_params": grn_params,
+                             "run_options": run_options, "simulation_params": simulation_params,
+                             "grn_params": grn_params,
                              "save_options": save_options}
 
                 pikd = open("../scan_dicts/%s" % scan_dict_name + ".pickle", 'wb')
@@ -174,7 +175,7 @@ if __name__ == "__main__":
                 run_simulation(path_name)
                 t1 = time.time()
                 print(t1 - t0)
-                out_file = open("../scan_summary/17122022_W01_AVEp0_VEp0_v0_lambdaP_alpha_result_log.txt", "a")
+                out_file = open("../scan_summary/22072023_W01_AVEp0_VEp0_result_log.txt", "a")
                 out_file.write("%s_%.2f" % (path_name, (t1 - t0)) + "\n")
                 out_file.close()
                 t_1 = time.time()
@@ -192,11 +193,11 @@ if __name__ == "__main__":
         #
 
         t_tot_0 = time.time()
-        # Parallel(n_jobs=16,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+        Parallel(n_jobs=16,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
 
         #
-        for i in range_to_sample:
-            run_job(i,equiangulate=True)
+        # for i in range_to_sample:
+        #     run_job(i,equiangulate=True)
         #     # try:
         #     #     run_job_timed(i)
         #     # except:

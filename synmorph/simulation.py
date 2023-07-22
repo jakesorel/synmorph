@@ -100,7 +100,7 @@ class Simulation:
         # self.save_dir = self.save_options["result_dir"] + "/" + self.name
         # if not os.path.exists(self.save_dir):
         #     os.mkdir(self.save_dir)
-        #
+        # #
         # self.save_dir_pickled = self.save_options["result_dir"] + "/" + self.name + "/pickled"
         # if not os.path.exists(self.save_dir_pickled):
         #     os.mkdir(self.save_dir_pickled)
@@ -108,8 +108,8 @@ class Simulation:
         # self.save_dir_plots = self.save_options["result_dir"] + "/" + self.name + "/plots"
         # if not os.path.exists(self.save_dir_plots):
         #     os.mkdir(self.save_dir_plots)
-
-        self.save_dir_pickled = self.save_options["result_dir"]
+        #
+        # self.save_dir_pickled = self.save_options["result_dir"]
 
         if "tinit" in self.simulation_params:
             if self.simulation_params["tinit"] >0:
@@ -163,10 +163,15 @@ class Simulation:
         dt = self.dt  ##repeatedly called to saved here temporarily.
         k = 0  ##dummy variable to count the number of saved time-points.
         v0 = self.t.active.active_params["v0"].copy()
-        self.t.active.active_params["v0"] *= 0
+        self.t.active.active_params["v0"] *= 0.
 
         t_span_init = np.arange(0,self.simulation_params["tinit"],self.dt)
         nt_init = t_span_init.size
+        grn = True if self.grn is not None else False  # bool for whether to perform the grn calculation if such a model is specified.
+        def update_with_grn(dt):  # short-hand for updating tissue and grn.
+            self.grn.update_grn_initialisation(dt, self.simulation_params["dt_grn"])
+            self.t.update(dt)
+        update = update_with_grn if grn else self.t.update  # define the update rule depending on whether the grn has been specified or not.
 
         if progress_bar:  # set up the progress bar if wanted.
             iterator = tqdm(range(0, nt_init), ncols=100, desc="Initialisation progress")
@@ -174,10 +179,13 @@ class Simulation:
             iterator = range(nt_init)
         for i in iterator:
             t = t_span_init[i]  # present time-point
-            self.t.update(dt)  # update the tissue and the grn.
+            update(dt)  # update the tissue and the grn.
             F = self.t.get_forces()  # calculate the forces.
             self.t.mesh.x += F * dt  # execute the movements.
             self.t.mesh.x = per.mod2(self.t.mesh.x, self.t.mesh.L, self.t.mesh.L)  # enforce periodicity
+            # fig, ax = plt.subplots()
+            # plot.plot_vor(ax,self.t.mesh.x,self.t.mesh.L)
+            # fig.savefig("results/current_state.pdf")
         self.t.active.active_params["v0"] = v0
 
 

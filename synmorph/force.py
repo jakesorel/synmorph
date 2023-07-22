@@ -137,6 +137,16 @@ def get_tF(vp1_vm1, v_vm1, v_vp1, v_x, lm1, lp1, Jm, Jp, kappa_A, kappa_P, A0, P
 
     dPdv_j_m = v_vm1 / np.expand_dims(lm1, 2)
     dPdv_j_p = v_vp1 / np.expand_dims(lp1, 2)
+
+    ##guard against divide by 0 error
+    m_mask = np.isnan(dPdv_j_m)
+    p_mask = np.isnan(dPdv_j_p)
+    if np.any(m_mask):
+        dPdv_j_m = trf.replace_val(dPdv_j_m,m_mask,0)
+    if np.any(p_mask):
+        dPdv_j_p = trf.replace_val(dPdv_j_p,p_mask,0)
+
+
     dPdv_j = dPdv_j_p + dPdv_j_m
 
     dtEdv_l_v_j = dPdv_j_m * np.expand_dims(Jm, 2) + dPdv_j_p * np.expand_dims(Jp, 2)
