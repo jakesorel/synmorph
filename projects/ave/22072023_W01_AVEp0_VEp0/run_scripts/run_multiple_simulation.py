@@ -137,7 +137,7 @@ if __name__ == "__main__":
                 run_options = {"equiangulate": True,
                                "equi_nkill": 10}
                 simulation_params = {"dt": 0.10,
-                                     "tfin": 100,
+                                     "tfin": 300,
                                      "tskip": 10,
                                      "dt_grn": 0.025,
                                      "grn_sim": "grn_ave_couple_orientation",
