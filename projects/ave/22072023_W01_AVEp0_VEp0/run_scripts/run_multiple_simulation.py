@@ -156,12 +156,11 @@ if __name__ == "__main__":
                               "nonAVE_p0": VE_p0}
                 save_options = {"save": "hdf5",
                                 "result_dir": "../scan_results",
-                                "name": "AVE_example_full",
+                                "name": scan_dict_name,
                                 "compressed": True}
 
                 scan_dict = {"tissue_params": tissue_params, "active_params": active_params, "init_params": init_params,
-                             "run_options": run_options, "simulation_params": simulation_params,
-                             "grn_params": grn_params,
+                             "run_options": run_options, "simulation_params": simulation_params, "grn_params": grn_params,
                              "save_options": save_options}
 
                 pikd = open("../scan_dicts/%s" % scan_dict_name + ".pickle", 'wb')
