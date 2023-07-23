@@ -47,7 +47,7 @@ def run(sim_name):
         ti_hit_boundary = -1
     with open("../analysis_results/t_hit_boundary.txt", "a+") as g:
         fcntl.flock(g, fcntl.LOCK_EX)
-        g.write(sim_name + ",",ti_hit_boundary + "\n")
+        g.write(sim_name + "," + str(ti_hit_boundary) + "\n")
         fcntl.flock(g, fcntl.LOCK_UN)
 
     def get_AVE_x(x, c_types, c_type=0):
