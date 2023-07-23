@@ -15,6 +15,7 @@ from joblib import Parallel, delayed
 from joblib.externals.loky.process_executor import TerminatedWorkerError
 from multiprocessing import cpu_count
 import threading
+import pandas as pd
 
 try:
     import thread
@@ -82,13 +83,12 @@ if __name__ == "__main__":
                 # g.write("path_name\n")
                 fcntl.flock(g, fcntl.LOCK_UN)
 
-        N = 20
-        total_sims = N**3
-        sims_per_lot = 400
-        slurm_index = int(sys.argv[1])
-        print("Slurm index", slurm_index)
-        range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
+        df_run = pd.read_csv("../scan_summary/to_run.csv")
+        run_idx = df_run["to_run"].csv
 
+        i = run_idx[int(sys.argv[1])]
+        slurm_index = int(sys.argv[1])
+        N = 20
         def run_job(i,equiangulate=True):
             t_0 = time.time()
             if not os.path.exists("../scan_results/22072023_W01_AVEp0_VEp0_%d_simulation.h5.gz"%i):
@@ -191,8 +191,7 @@ if __name__ == "__main__":
         #     return run_job(i,False)
         #
 
-        t_tot_0 = time.time()
-        Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
+        run_job(i,True)
 
         #
         # for i in range_to_sample:
@@ -205,9 +204,6 @@ if __name__ == "__main__":
         #     #         run_job_timed_no_equiangulate(i)
         #     #     except:
         #     #         print("Forced triangulation timed out too.. giving up")
-
-        t_tot_1 = time.time()
-        print("400 simulations completed in ",t_tot_0-t_tot_0,"s")
         sys.exit(0)
 
     except TerminatedWorkerError:
@@ -215,12 +211,3 @@ if __name__ == "__main__":
         print("TerminatedWorkerError occurred. Restarting...")
         sys.exit(1)  # Or any other action to restart the execution
 
-
-"""
-Note, may need to do some tidying up of the dataset. 
-
-Need to deal with instances where the code crashed mid export or mid zip. 
-
-mid export --> .h5 present, but .gz not present. Here, need to repeat the simulation
-mid zip --> .h5 and .gz both present. Here, need to repeat the zipping. 
-"""
