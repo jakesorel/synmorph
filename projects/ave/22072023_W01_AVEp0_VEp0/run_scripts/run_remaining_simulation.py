@@ -84,7 +84,7 @@ if __name__ == "__main__":
                 fcntl.flock(g, fcntl.LOCK_UN)
 
         df_run = pd.read_csv("../scan_summary/to_run.csv")
-        run_idx = df_run["to_run"].csv
+        run_idx = df_run["to_run"].values
 
         i = run_idx[int(sys.argv[1])]
         slurm_index = int(sys.argv[1])
