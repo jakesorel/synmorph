@@ -273,7 +273,7 @@ if __name__ == "__main__":
     N = 20
     total_sims = N**4
     sims_per_lot = 20
-    slurm_index = 0#int(sys.argv[1])
+    slurm_index = int(sys.argv[1])
     range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
 
     for i in range_to_sample:
