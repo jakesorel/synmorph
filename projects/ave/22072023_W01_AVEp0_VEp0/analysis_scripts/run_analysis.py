@@ -269,6 +269,8 @@ def run_time_binned(sim_name, n_time_point=101):
 
 
 if __name__ == "__main__":
+    if not os.path.exists("../analysis_results"):
+        os.mkdir("../analysis_results")
 
     N = 20
     total_sims = N**4
