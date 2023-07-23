@@ -17,7 +17,7 @@ def connected_components(tri, c_types, n_c):
     """
     lookup = np.arange(n_c)
     mask = np.array((True, True))
-    dtri_flat, dtrip1_flat = tri.ravel(), trf.roll(tri).ravel()
+    dtri_flat, dtrip1_flat = tri.ravel(), trf.roll_int(tri,1).ravel()
     same_edges = (c_types[dtri_flat] == c_types[dtrip1_flat])
     dtri_flat, dtrip1_flat = dtri_flat[same_edges], dtrip1_flat[same_edges]
     while mask.any():
@@ -65,7 +65,7 @@ def boundary_cells(tri, num_in_cluster0=None, num_in_cluster1=None, lookup=None,
         (num_in_cluster0, num_in_cluster1), lookup = connected_components(tri, c_types, n_c)
     tri_flat = tri.ravel()
     sct_flat = lookup[tri_flat]
-    sctp1_flat = trf.roll(sct_flat.reshape(tri.shape)).ravel()
+    sctp1_flat = trf.roll_int(sct_flat.reshape(tri.shape),1).ravel()
     num_boundary0, num_boundary1 = num_in_cluster0.copy(), num_in_cluster1.copy()
     for i in range(num_boundary0.size):
         k = -i - 1
@@ -139,7 +139,7 @@ def get_boundary_entropy(num_in_cluster0=None,num_in_cluster1=None,num_boundary0
     return -(np.log(p0)*p0).sum(), -(np.log(p1)*p1).sum()
 
 def get_mat_from_tri(tri):
-    dtri_flat, dtrip1_flat = tri.ravel(), trf.roll(tri).ravel()
+    dtri_flat, dtrip1_flat = tri.ravel(), trf.roll_int(tri,1).ravel()
     mat = coo_matrix(([1]*len(dtri_flat),(dtri_flat,dtrip1_flat)))
     return mat
 

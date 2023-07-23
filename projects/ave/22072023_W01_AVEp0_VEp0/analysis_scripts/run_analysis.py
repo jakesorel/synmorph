@@ -10,34 +10,45 @@ import numpy as np
 from synmorph.analysis import geometrical as geo
 from synmorph.analysis import topological as top
 from synmorph.analysis import spatial as sp
+from synmorph.utils import *
 import pickle
 import pandas as pd
+import fcntl
+
 
 # sim_name = "23032022_W01_AVEp0_VEp0_980"
 
 
 def run(sim_name):
-    def open_json(json_path):
-        with open(json_path) as json_file:
-            data = json.load(json_file)
-        return data
 
-    # process_skip = 6
-    # sim_name = "23032022_W01_AVEp0_VEp0_0"
-    sim_json = open_json("../scan_results/%s/pickled/%s" % (sim_name, sim_name) + "_simulation.json")
     pikd = open("../scan_dicts/%s.pickle" % sim_name, 'rb')
     scan_dict = pickle.load(pikd)
     pikd.close()
 
+    L = scan_dict["tissue_params"]["L"]
+    sim_dict = load_hdf5_skeleton("../scan_results/%s_simulation.h5.gz"%sim_name,L)
+
+
+
     run_options = scan_dict["run_options"]
 
-    x = np.array(sim_json["x_save"])
-    t = np.array(sim_json["t_span_save"])
-    tri = np.array(sim_json["tri_save"])
-    L = sim_json["L"]
-    c_types = np.array(sim_json["c_types"])
-    x_unwrapped = sp.unwrap_positions(x, L)
+    x = np.array(sim_dict["x_save"],dtype=np.float32)
+    t = np.arange(0,scan_dict["simulation_params"]["tfin"],scan_dict["simulation_params"]["dt"]*scan_dict["simulation_params"]["tskip"],dtype=np.float32)
+    tri = np.array(sim_dict["tri_save"],dtype=np.int32)
+    c_types = np.array(sim_dict["c_types"],dtype=np.int32)
+    # x_unwrapped = sp.unwrap_positions(x, L)
     meshes = geo.mesh_assembler(x, tri, L, run_options)
+
+    ctri_save = c_types[tri]
+    hit_boundary = ((ctri_save == 0).any(axis=2)) * ((ctri_save == 3).any(axis=2))
+    if hit_boundary.any():
+        ti_hit_boundary = np.nonzero(hit_boundary)[0][0]
+    else:
+        ti_hit_boundary = -1
+    with open("../analysis_results/t_hit_boundary.txt", "a+") as g:
+        fcntl.flock(g, fcntl.LOCK_EX)
+        g.write(sim_name + ",",ti_hit_boundary + "\n")
+        fcntl.flock(g, fcntl.LOCK_UN)
 
     def get_AVE_x(x, c_types, c_type=0):
         mask = c_types == c_type
@@ -101,21 +112,18 @@ def run(sim_name):
 
 
 def run_time_binned(sim_name, n_time_point=101):
-    def open_json(json_path):
-        with open(json_path) as json_file:
-            data = json.load(json_file)
-        return data
-
-    # process_skip = 6
-    # sim_name = "23032022_W01_AVEp0_VEp0_0"
-    sim_json = open_json("../scan_results/%s/pickled/%s" % (sim_name, sim_name) + "_simulation.json")
     pikd = open("../scan_dicts/%s.pickle" % sim_name, 'rb')
     scan_dict = pickle.load(pikd)
     pikd.close()
 
-    run_options = scan_dict["run_options"]
+    L = scan_dict["tissue_params"]["L"]
+    sim_dict = load_hdf5_skeleton("../scan_results/%s_simulation.h5.gz" % sim_name, L)
 
-    t_span = np.array(sim_json["t_span_save"])
+    run_options = scan_dict["run_options"]
+    x = np.array(sim_dict["x_save"],dtype=np.float32)
+    t_span = np.arange(0,scan_dict["simulation_params"]["tfin"],scan_dict["simulation_params"]["dt"]*scan_dict["simulation_params"]["tskip"],dtype=np.float32)
+    tri_save = np.array(sim_dict["tri_save"],dtype=np.int32)
+    c_types = np.array(sim_dict["c_types"],dtype=np.int32)
     nti = t_span.size
     ti_interval = int(nti / n_time_point)
 
@@ -139,12 +147,10 @@ def run_time_binned(sim_name, n_time_point=101):
         _x = x_save - mid
         return (rotation_matrix @ _x.reshape(-1, 2).T).T.reshape(_x.shape)
 
-    c_types = np.array(sim_json["c_types"])
-    L = sim_json["L"]
     mid_point = np.array((L / 2, L / 2))
-    AVE_x_start = get_AVE_x(np.array(sim_json["x_save"])[:1], c_types)[0]
+    AVE_x_start = get_AVE_x(x[:1], c_types)[0]
 
-    AVE_x_end = get_AVE_x(np.array(sim_json["x_save"])[-2:], c_types)[-1]
+    AVE_x_end = get_AVE_x(x[-2:], c_types)[-1]
     # AVE_x_start_centre = AVE_x_start.mean(axis=0)
 
     AVE_vector = np.mean(AVE_x_end - AVE_x_start, axis=0)
@@ -155,9 +161,9 @@ def run_time_binned(sim_name, n_time_point=101):
 
     rng = np.arange(0, ti_interval * n_time_point, ti_interval)
     t = t_span[rng]
-    x_original = np.array(sim_json["x_save"])[rng]
+    x_original = np.array(x,dtype=np.float32)[rng]
     x = apply_rotation(x_original, mid_point, rotation_matrix)
-    tri = np.array(sim_json["tri_save"])[rng]
+    tri = tri_save[rng]
     meshes = geo.mesh_assembler(x_original, tri, L, run_options)
     eccentricities, P, A, N_neighbours = np.zeros_like(x[:, :, 0]), np.zeros_like(x[:, :, 0]), np.zeros_like(
         x[:, :, 0]), np.zeros_like(x[:, :, 0], dtype=np.int64)
@@ -267,19 +273,20 @@ if __name__ == "__main__":
     N = 20
     total_sims = N**4
     sims_per_lot = 20
-    slurm_index = int(sys.argv[1])
+    slurm_index = 0#int(sys.argv[1])
     range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
 
     for i in range_to_sample:
 
         # i = int(sys.getenv('SLURM_ARRAY_TASK_ID'))
-        path_names = open("../scan_summary/23032022_W01_AVEp0_VEp0_path_names.txt").readlines()
+        path_names = open("../scan_summary/22072023_W01_AVEp0_VEp0_path_names.txt").readlines()
         path_name = path_names[i].split("\n")[0]
-        out_file = open("../scan_summary/23032022_W01_AVEp0_VEp0_result_log.txt")
+        out_file = open("../scan_summary/22072023_W01_AVEp0_VEp0_result_log.txt")
         out_file_lines = out_file.readlines()
         if any([path_name in o for o in out_file_lines]):
-            sim_name = path_name.split(".pickle")[0].split("scan_dicts/")[1]
-            # run(sim_name)
+            sim_name = path_name
+            run(sim_name)
 
             run_time_binned(sim_name)
+
 
