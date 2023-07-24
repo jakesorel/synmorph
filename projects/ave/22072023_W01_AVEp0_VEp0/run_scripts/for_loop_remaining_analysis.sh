@@ -11,7 +11,6 @@
 #SBATCH --mem=2G
 
 
-
-sbatch --array [0-6347] run_remaining_analysis.sh ${SLURM_ARRAY_TASK_ID}
+sbatch --array [0-6347] --output=../bash_out/output_%A_%a.out --error=../bash_out/error_%A_%a.out run_remaining_analysis.sh ${SLURM_ARRAY_TASK_ID}
 
 

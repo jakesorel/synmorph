@@ -4,7 +4,7 @@ import numpy as np
 import synmorph as sm
 from synmorph.analysis import spatial
 import synmorph.analysis.topological as top
-
+from synmorph import sim_plotting as plot
 
 """
 How many free params:
@@ -36,9 +36,9 @@ AVE-EPI
 
 """
 
-W01 = 0
-AVE_p0 = 5.0
-VE_p0 = 5.0
+W01 = 0.1
+AVE_p0 = 3.9
+VE_p0 = 4.3
 AVE_v0 = 1e-1
 lambda_P = 0.1
 seed = 2023
@@ -60,7 +60,7 @@ init_params = {"init_noise": 0.1,
 run_options = {"equiangulate": True,
                "equi_nkill": 10}
 simulation_params = {"dt": 0.10,
-                     "tfin": 100,
+                     "tfin": 300,
                      "tskip": 10,
                      "dt_grn": 0.025,
                      "grn_sim": "grn_ave_couple_orientation",
@@ -99,7 +99,120 @@ sim.simulate(progress_bar=True)
 
 sim.animate_c_types(n_frames=15,
                     c_type_col_map=["#4bdb71", "#ffbb4d","#ffbb4d","white"],
-                    file_name="VEp0 = 4.2 W01 = 1e-3")
+                    file_name="AVEp0 = 3.9 VEp0 = 3.9 W01 = 0.1")
+#
+#
+# fig, ax = plt.subplots()
+pos = spatial.displacements(sim.x_save.astype(np.float32),sim.t.mesh.L) + sim.x_save[0]
+# tmax = 800
+# pos_sample = pos[:tmax,sim.t.c_types==0]
+# ax.plot(pos_sample[:,:,0],pos_sample[:,:,1],color='black')
+# last_dir = pos_sample[-1] - pos_sample[-2]
+# last_dir = last_dir/np.expand_dims(np.linalg.norm(last_dir,axis=1),1)
+# ax.quiver(pos_sample[-1,:,0],pos_sample[-1,:,1],last_dir[:,0],last_dir[:,1],color='black')
+# ax.set(aspect=1)
+# ax.axis("off")
+# fig.savefig("results/AVE_example2/plots/tracks.pdf")
+#
+# plt.show()
+#
+# fig, ax = plt.subplots()
+# tmax = -1
+#
+# pos_ave = pos[:,sim.t.c_types==1]
+# av_pos_ave = pos_ave.mean(axis=1)
+# pos_rel_to_ave = pos - np.expand_dims(av_pos_ave,1)
+# ax.plot(pos_rel_to_ave[:tmax,sim.t.c_types==0,0],pos_rel_to_ave[:tmax,sim.t.c_types==0,1],color='black')
+# fig.show()
+#
+# velocity = pos_rel_to_ave[1:] - pos_rel_to_ave[:-1]
+# pos_tm1 = pos_rel_to_ave[:-1]
+#
+#
+#
+# from scipy import interpolate
+# L = sim.t.mesh.L
+# xx = np.linspace(-L/2, L/2,50)
+# yy = np.linspace(-L/2,L/2, 50)
+#
+#
+# xx, yy = np.meshgrid(xx, yy)
+#
+# # points = np.transpose(np.vstack((x, y)))
+# u_interp = interpolate.griddata(pos_tm1.reshape(-1,2), velocity[:,:,0].ravel(), (xx, yy), method='cubic')
+# v_interp = interpolate.griddata(pos_tm1.reshape(-1,2), velocity[:,:,1].ravel(),(xx, yy),  method='cubic')
+#
+#
+# # plt.figure(2)
+# plt.quiver(xx, yy, u_interp, v_interp)
+# plt.show()
+#
+#
+# fig, ax = plt.subplots()
+# x,y = pos_tm1[:,:,0].ravel(),pos_tm1[:,:,1].ravel()
+# vx, vy = velocity[:,:,0].ravel(),velocity[:,:,1].ravel()
+# order = np.argsort(x)
+# x,y = x[order],y[order]
+# vx,vy = vx[order],vy[order]
+# ax.streamplot(x,y,vx,vy)
+# fig.show()
+
+
+from scipy.stats import binned_statistic_2d
+import numpy as np
+
+mask = sim.t.c_types==1
+pos_tm1 = pos[:-1,mask]
+# pos_tm1[...,1] = L - pos_tm1[...,1]
+velocity = pos[1:,mask] - pos[:-1,mask]
+# velocity[...,1] = -velocity[...,1]
+# x_bins = np.linspace(-L/2, L/2,15)
+# y_bins = np.linspace(-L/2,L/2, 15)
+n_bin = 10
+x_bins = np.linspace(0, L,n_bin)
+y_bins = np.linspace(0, L,n_bin)
+
+xx, yy = np.meshgrid(x_bins, y_bins)
+
+tmin = 0
+tmax = 100
+
+vx_av = velocity[tmin:tmax,:,0].ravel().mean()
+vy_av = velocity[tmin:tmax,:,1].ravel().mean()
+
+ret_x = binned_statistic_2d(pos_tm1[tmin:tmax,:,0].ravel(),pos_tm1[tmin:tmax,:,1].ravel(), velocity[tmin:tmax,:,0].ravel(), statistic=np.nanmean, bins=[x_bins, y_bins])
+ret_y = binned_statistic_2d(pos_tm1[tmin:tmax,:,0].ravel(),pos_tm1[tmin:tmax,:,1].ravel(), velocity[tmin:tmax,:,1].ravel(), statistic=np.nanmean, bins=[x_bins, y_bins])
+
+av_velocity = np.sqrt(ret_x.statistic**2 + ret_y.statistic**2)
+av_velocity /= np.nanmean(av_velocity)
+
+vx,vy = ret_x.statistic,ret_y.statistic
+n_vx,n_vy = vx/np.sqrt(vx**2 + vy**2),vy/np.sqrt(vx**2 + vy**2)
+
+x_bin_centres = (x_bins[1:] + x_bins[:-1])/2
+y_bin_centres = (y_bins[1:] + y_bins[:-1])/2
+
+xx, yy = np.meshgrid(x_bin_centres, y_bin_centres)
+
+fig, ax = plt.subplots(figsize=(4,4))
+
+# ax.set(aspect=1,xlim=(-L/2,L/2),ylim=(-L/2,L/2))
+streamlines = ax.streamplot(xx,yy,vx,vy,linewidth=av_velocity,color="#d0417e",density=1.5)
+alpha = 0.6
+streamlines.lines.set_alpha(alpha)
+streamlines.arrows.set_alpha(alpha)
+
+# plot.plot_vor(ax,sim.x_save[0].astype(np.float32),sim.t.tissue_params["L"],cols=plot.generate_ctype_cols(sim.t.c_types,c_type_col_map=["darkgrey", "lightgrey","lightgrey","white"]))
+# ax.quiver(xx,yy,ret_x.statistic,ret_y.statistic)
+
+ax.axis("off")
+fig.show()
+fig.savefig("results/AVE_example/plots/streamplot.pdf")
+
+
+# The ret_x_rotated_back and ret_y_rotated_back are the final statistics after the rotation, binned_statistic, and reverse translation.
+
+
 #
 # fig, ax = plt.subplots()
 # # ax.quiver(sim.t.mesh.x[:,0],sim.t.mesh.x[:,1],sim.t.F[:,0]/np.linalg.norm(sim.t.F,axis=1),sim.t.F[:,1]/np.linalg.norm(sim.t.F,axis=1),color="red")

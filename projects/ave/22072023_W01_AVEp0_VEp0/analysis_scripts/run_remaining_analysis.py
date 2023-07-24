@@ -275,11 +275,7 @@ if __name__ == "__main__":
     df_a = pd.read_csv("../scan_summary/to_run_analysis.csv")
     to_run_idx = df_a["to_run"].values
     i = to_run_idx[int(sys.argv[1])]
-    path_names = open("../scan_summary/22072023_W01_AVEp0_VEp0_path_names.txt").readlines()
-    path_name = path_names[i].split("\n")[0]
-    out_file = open("../scan_summary/22072023_W01_AVEp0_VEp0_result_log.txt")
-    out_file_lines = out_file.readlines()
-    sim_name = path_name
+    sim_name = "22072023_W01_AVEp0_VEp0_%d"%i
     run(sim_name)
     run_time_binned(sim_name)
 
