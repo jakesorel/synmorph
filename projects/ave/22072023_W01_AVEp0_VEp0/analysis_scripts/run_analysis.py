@@ -19,7 +19,7 @@ import fcntl
 # sim_name = "23032022_W01_AVEp0_VEp0_980"
 
 
-def run(sim_name):
+def run(sim_name,meshes):
 
     pikd = open("../scan_dicts/%s.pickle" % sim_name, 'rb')
     scan_dict = pickle.load(pikd)
@@ -37,7 +37,7 @@ def run(sim_name):
     tri = np.array(sim_dict["tri_save"],dtype=np.int32)
     c_types = np.array(sim_dict["c_types"],dtype=np.int32)
     # x_unwrapped = sp.unwrap_positions(x, L)
-    meshes = geo.mesh_assembler(x, tri, L, run_options)
+    # meshes = geo.mesh_assembler(x, tri, L, run_options)
 
     ctri_save = c_types[tri]
     hit_boundary = ((ctri_save == 0).any(axis=2)) * ((ctri_save == 3).any(axis=2))
@@ -111,7 +111,7 @@ def run(sim_name):
     df.to_csv("../analysis_results/all/%s_analysis.csv" % (sim_name), index=None)
 
 
-def run_time_binned(sim_name, n_time_point=101):
+def run_time_binned(sim_name, meshes,n_time_point=101):
     pikd = open("../scan_dicts/%s.pickle" % sim_name, 'rb')
     scan_dict = pickle.load(pikd)
     pikd.close()
@@ -164,7 +164,7 @@ def run_time_binned(sim_name, n_time_point=101):
     x_original = np.array(x,dtype=np.float32)[rng]
     x = apply_rotation(x_original, mid_point, rotation_matrix)
     tri = tri_save[rng]
-    meshes = geo.mesh_assembler(x_original, tri, L, run_options)
+    # meshes = geo.mesh_assembler(x_original, tri, L, run_options)
     eccentricities, P, A, N_neighbours = np.zeros_like(x[:, :, 0]), np.zeros_like(x[:, :, 0]), np.zeros_like(
         x[:, :, 0]), np.zeros_like(x[:, :, 0], dtype=np.int64)
     for i, mesh in enumerate(meshes):
@@ -273,22 +273,34 @@ if __name__ == "__main__":
         os.mkdir("../analysis_results")
 
     N = 20
-    total_sims = N**4
-    sims_per_lot = 20
+    total_sims = N**3
+    sims_per_lot = 400
     slurm_index = int(sys.argv[1])
     range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
 
-    for i in range_to_sample:
+    def run_analysis_all(i):
+        sim_name = "22072023_W01_AVEp0_VEp0_%d" % i
 
-        # i = int(sys.getenv('SLURM_ARRAY_TASK_ID'))
-        path_names = open("../scan_summary/22072023_W01_AVEp0_VEp0_path_names.txt").readlines()
-        path_name = path_names[i].split("\n")[0]
-        out_file = open("../scan_summary/22072023_W01_AVEp0_VEp0_result_log.txt")
-        out_file_lines = out_file.readlines()
-        if any([path_name in o for o in out_file_lines]):
-            sim_name = path_name
-            run(sim_name)
+        pikd = open("../scan_dicts/%s.pickle" % sim_name, 'rb')
+        scan_dict = pickle.load(pikd)
+        pikd.close()
 
-            run_time_binned(sim_name)
+        L = scan_dict["tissue_params"]["L"]
+        sim_dict = load_hdf5_skeleton("../scan_results/%s_simulation.h5.gz" % sim_name, L)
+
+        run_options = scan_dict["run_options"]
+
+        x = np.array(sim_dict["x_save"], dtype=np.float32)
+        t = np.arange(0, scan_dict["simulation_params"]["tfin"],
+                      scan_dict["simulation_params"]["dt"] * scan_dict["simulation_params"]["tskip"], dtype=np.float32)
+        tri = np.array(sim_dict["tri_save"], dtype=np.int32)
+        c_types = np.array(sim_dict["c_types"], dtype=np.int32)
+        # x_unwrapped = sp.unwrap_positions(x, L)
+        meshes = geo.mesh_assembler(x, tri, L, run_options)
+
+        run(sim_name,meshes)
+        run_time_binned(sim_name,meshes)
+
+    Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_analysis_all)(i) for i in range_to_sample)
 
 

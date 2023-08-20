@@ -12,6 +12,6 @@
 
 
 
-sbatch --array [0-7999] run_analysis.sh ${SLURM_ARRAY_TASK_ID}
+sbatch --array [0-399] run_analysis.sh ${SLURM_ARRAY_TASK_ID}
 
 

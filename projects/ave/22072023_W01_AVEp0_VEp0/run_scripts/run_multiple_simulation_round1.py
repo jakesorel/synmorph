@@ -102,7 +102,7 @@ if __name__ == "__main__":
                 W01 = W01_range[i1]
                 AVE_p0 = AVE_p0_range[i2]
                 VE_p0 = VE_p0_range[i3]
-                AVE_v0 = 0.05
+                AVE_v0 = 1e-1
                 lambda_P = 0.1
                 seed = seed_range[j]
                 counter = np.flip([i1, i2, i3, j])
@@ -123,7 +123,7 @@ if __name__ == "__main__":
 
                 tissue_params = {"L": 16.8,
                                  "A0": 1.,
-                                 "P0": 3.4,
+                                 "P0": 3.2,
                                  "kappa_A": 1.,
                                  "kappa_P": lambda_P,
                                  "W": (np.array(((0.0, W01, W01, 0.1), (W01, 0, 0, 0.5), (W01, 0, 0, 0.5),

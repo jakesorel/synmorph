@@ -3,9 +3,11 @@ import numpy as np
 
 import synmorph as sm
 from synmorph.analysis import spatial
+from synmorph.analysis import geometrical as geo
 import synmorph.analysis.topological as top
 from synmorph import sim_plotting as plot
-
+import synmorph.tri_functions as trf
+from scipy.sparse import coo_matrix
 """
 How many free params:
 
@@ -36,21 +38,28 @@ AVE-EPI
 
 """
 
+"""
+It seems like the velocity needs to be not too high such that the AVE stalls. 
+
+
+"""
+
+
 W01 = 0.1
 AVE_p0 = 3.4
-VE_p0 = 4.3
-AVE_v0 = 1e-1
+VE_p0 = 4.5
+AVE_v0 = 0.05
 lambda_P = 0.1
 seed = 2023
 
 
-tissue_params = {"L": 16.8,
+tissue_params = {"L": 25,
                  "A0": 1.,
-                 "P0": 3.2,
+                 "P0": 3.4,
                  "kappa_A": 1.,
                  "kappa_P": lambda_P,
                  "W": (np.array(((0.0, W01, W01, 0.1), (W01, 0, 0, 0.5), (W01, 0, 0, 0.5),
-                                 (0.1, 0.5, 0.5, 0.1))) * 1).astype(np.float32),
+                                 (0.1, 0.5,0.5, 0.1))) * 1).astype(np.float32),
                  "a": 0.,
                  "k": 0.}
 active_params = {"v0": 2e-1,
@@ -59,8 +68,8 @@ init_params = {"init_noise": 0.1,
                "c_type_proportions": (1.0, 0)}
 run_options = {"equiangulate": True,
                "equi_nkill": 10}
-simulation_params = {"dt": 0.10,
-                     "tfin": 300,
+simulation_params = {"dt": 0.25,
+                     "tfin": 900,
                      "tskip": 10,
                      "dt_grn": 0.025,
                      "grn_sim": "grn_ave_couple_orientation",
@@ -72,9 +81,9 @@ grn_params = {"n_AVE_cells": 20,
               "AVE_v0": AVE_v0,
               "non_AVE_v0": 0.,
               "AVE_alpha0": -np.pi / 2,
-              "boundary_frac": 0.20,
+              "boundary_frac": 0.1,
               "AVE_A0": 0.54,
-              "exe_frac": 0.0,
+              "exe_frac": 0.45,
               "AVE_p0": AVE_p0,
               "nonAVE_p0": VE_p0}
 save_options = {"save": "hdf5",
@@ -94,13 +103,37 @@ sim = sm.simulation(tissue_params=tissue_params,
                     run_options=run_options,
                     save_options=save_options)
 
+
+# sim.t.kappa_P[sim.t.c_types==2] = 1.
+sim.initialize()
+fig, ax = plt.subplots()
+plot.plot_vor(ax, sim.t.mesh.x, sim.t.tissue_params["L"],
+              cols=plot.generate_ctype_cols(sim.t.c_types,
+                                            c_type_col_map=["#399cc3", "lightgrey", "green", "white"]))
+fig.show()
+
 sim.save_dir_plots = "results"
 sim.simulate(progress_bar=True)
 
 sim.animate_c_types(n_frames=15,
-                    c_type_col_map=["#4bdb71", "#ffbb4d","#ffbb4d","white"],
-                    file_name="AVEp0 = 3.9 VEp0 = 3.9 W01 = 0.1")
+                    c_type_col_map=["#4bdb71", "#ffbb4d","green","white"],
+                    file_name="three tissue")
 #
+
+def get_total_t1s():
+    tri_save = sim.tri_save
+
+    meshes = geo.mesh_assembler(sim.x_save.astype(np.float32), sim.tri_save.astype(np.int32), sim.t.mesh.L, run_options)
+
+    ave_mask = (sim.t.c_types==0)
+
+    l_int_AVE_save = np.zeros((len(meshes),sum(ave_mask),sum(ave_mask)))
+    for i, mesh in enumerate(meshes):
+        l_int = mesh.l_int
+        l_int_AVE_save[i] = (l_int.toarray()[ave_mask].T[ave_mask].T)
+
+    total_t1s = ((l_int_AVE_save[1:]!=0)!=(l_int_AVE_save[:-1]!=0)).sum()/4
+
 #
 # fig, ax = plt.subplots()
 pos = spatial.displacements(sim.x_save.astype(np.float32),sim.t.mesh.L) + sim.x_save[0]
@@ -479,4 +512,5 @@ fig, ax = plt.subplots(1,len(i_range),figsize=(20,20))
 for j, i in enumerate(i_range):
     plot.plot_vor(ax[j],sim.x_save[i].astype(np.float32),sim.t.tissue_params["L"],cols=plot.generate_ctype_cols(sim.t.c_types,c_type_col_map=["#399cc3", "lightgrey","lightgrey","white"]))
 fig.savefig("results/dynamics.pdf",dpi=300)
+
 
