@@ -95,7 +95,7 @@ if __name__ == "__main__":
                 print("Simulating %d" % i)
                 [i1, i2, i3, j] = np.unravel_index(i, (N, N, N, N))
 
-                W01_range = np.logspace(-3, -1, N)
+                W01_range = np.linspace(0, 0.1, N)
                 AVE_p0_range = np.linspace(3.4, 5, N)
                 VE_p0_range = np.linspace(3.4, 5, N)
                 seed_range = 2023 + np.arange(N, dtype=int)
