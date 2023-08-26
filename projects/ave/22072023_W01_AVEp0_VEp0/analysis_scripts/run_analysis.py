@@ -14,6 +14,10 @@ from synmorph.utils import *
 import pickle
 import pandas as pd
 import fcntl
+from joblib import Parallel, delayed
+from joblib.externals.loky.process_executor import TerminatedWorkerError
+from multiprocessing import cpu_count
+import threading
 
 
 # sim_name = "23032022_W01_AVEp0_VEp0_980"
@@ -302,5 +306,4 @@ if __name__ == "__main__":
         run_time_binned(sim_name,meshes)
 
     Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_analysis_all)(i) for i in range_to_sample)
-
 
