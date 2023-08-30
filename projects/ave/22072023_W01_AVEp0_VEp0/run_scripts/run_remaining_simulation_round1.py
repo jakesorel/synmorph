@@ -15,6 +15,7 @@ from joblib import Parallel, delayed
 from joblib.externals.loky.process_executor import TerminatedWorkerError
 from multiprocessing import cpu_count
 import threading
+import pandas as pd
 
 try:
     import thread
@@ -82,25 +83,26 @@ if __name__ == "__main__":
                 # g.write("path_name\n")
                 fcntl.flock(g, fcntl.LOCK_UN)
 
-        N = 20
-        total_sims = N**3
-        sims_per_lot = 400
-        i = int(sys.argv[1])
+        df_run = pd.read_csv("../scan_summary/to_run.csv")
+        run_idx = df_run["to_run"].values
 
+        i = run_idx[int(sys.argv[1])]
+        slurm_index = int(sys.argv[1])
+        N = 20
         def run_job(i,equiangulate=True):
             t_0 = time.time()
             if not os.path.exists("../scan_results/22072023_W01_AVEp0_VEp0_%d_simulation.h5.gz"%i):
                 print("Simulating %d" % i)
                 [i1, i2, i3, j] = np.unravel_index(i, (N, N, N, N))
 
-                W01_range = np.linspace(0, 0.1, N)
+                W01_range = np.logspace(-3, -1, N)
                 AVE_p0_range = np.linspace(3.4, 5, N)
                 VE_p0_range = np.linspace(3.4, 5, N)
                 seed_range = 2023 + np.arange(N, dtype=int)
                 W01 = W01_range[i1]
                 AVE_p0 = AVE_p0_range[i2]
                 VE_p0 = VE_p0_range[i3]
-                AVE_v0 = 0.05
+                AVE_v0 = 1e-1
                 lambda_P = 0.1
                 seed = seed_range[j]
                 counter = np.flip([i1, i2, i3, j])
@@ -121,7 +123,7 @@ if __name__ == "__main__":
 
                 tissue_params = {"L": 16.8,
                                  "A0": 1.,
-                                 "P0": 3.4,
+                                 "P0": 3.2,
                                  "kappa_A": 1.,
                                  "kappa_P": lambda_P,
                                  "W": (np.array(((0.0, W01, W01, 0.1), (W01, 0, 0, 0.5), (W01, 0, 0, 0.5),
@@ -180,13 +182,32 @@ if __name__ == "__main__":
             else:
                 print("Simulation %d exists, skipping"%i)
 
-        t_tot_0 = time.time()
+        # @exit_after(500)
+        # def run_job_timed(i):
+        #     return run_job(i,True)
+        #
+        # @exit_after(1800)
+        # def run_job_timed_no_equiangulate(i):
+        #     return run_job(i,False)
+        #
 
         run_job(i,True)
-        t_tot_1 = time.time()
+
+        #
+        # for i in range_to_sample:
+        #     run_job(i,equiangulate=True)
+        #     # try:
+        #     #     run_job_timed(i)
+        #     # except:
+        #     #     print("Equiangulation timed out")
+        #     #     try:
+        #     #         run_job_timed_no_equiangulate(i)
+        #     #     except:
+        #     #         print("Forced triangulation timed out too.. giving up")
         sys.exit(0)
 
     except TerminatedWorkerError:
         # Handle the error and initiate a restart
         print("TerminatedWorkerError occurred. Restarting...")
         sys.exit(1)  # Or any other action to restart the execution
+
