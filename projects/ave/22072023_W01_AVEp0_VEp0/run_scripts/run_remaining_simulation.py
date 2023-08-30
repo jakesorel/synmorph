@@ -85,7 +85,15 @@ if __name__ == "__main__":
         N = 20
         total_sims = N**3
         sims_per_lot = 400
-        i = int(sys.argv[1])
+
+        ############
+        #############
+        ##NOTE THAT THE FINAL INDEX TO RUN IS HARD CODED AS A HACK
+        i = 37285#int(sys.argv[1])
+        #######
+        ########
+        #######
+        #############
 
         def run_job(i,equiangulate=True):
             t_0 = time.time()
