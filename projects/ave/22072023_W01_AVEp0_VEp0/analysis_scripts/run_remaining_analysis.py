@@ -14,12 +14,16 @@ from synmorph.utils import *
 import pickle
 import pandas as pd
 import fcntl
+from joblib import Parallel, delayed
+from joblib.externals.loky.process_executor import TerminatedWorkerError
+from multiprocessing import cpu_count
+import threading
 
 
 # sim_name = "23032022_W01_AVEp0_VEp0_980"
 
 
-def run(sim_name):
+def run(sim_name,meshes):
 
     pikd = open("../scan_dicts/%s.pickle" % sim_name, 'rb')
     scan_dict = pickle.load(pikd)
@@ -37,7 +41,7 @@ def run(sim_name):
     tri = np.array(sim_dict["tri_save"],dtype=np.int32)
     c_types = np.array(sim_dict["c_types"],dtype=np.int32)
     # x_unwrapped = sp.unwrap_positions(x, L)
-    meshes = geo.mesh_assembler(x, tri, L, run_options)
+    # meshes = geo.mesh_assembler(x, tri, L, run_options)
 
     ctri_save = c_types[tri]
     hit_boundary = ((ctri_save == 0).any(axis=2)) * ((ctri_save == 3).any(axis=2))
@@ -111,7 +115,7 @@ def run(sim_name):
     df.to_csv("../analysis_results/all/%s_analysis.csv" % (sim_name), index=None)
 
 
-def run_time_binned(sim_name, n_time_point=25):
+def run_time_binned(sim_name, meshes,n_time_point=25):
     pikd = open("../scan_dicts/%s.pickle" % sim_name, 'rb')
     scan_dict = pickle.load(pikd)
     pikd.close()
@@ -164,7 +168,7 @@ def run_time_binned(sim_name, n_time_point=25):
     x_original = np.array(x,dtype=np.float32)[rng]
     x = apply_rotation(x_original, mid_point, rotation_matrix)
     tri = tri_save[rng]
-    meshes = geo.mesh_assembler(x, tri, L, run_options)
+    meshes = geo.mesh_assembler(x_original, tri, L, run_options)
     eccentricities, P, A, N_neighbours = np.zeros_like(x[:, :, 0]), np.zeros_like(x[:, :, 0]), np.zeros_like(
         x[:, :, 0]), np.zeros_like(x[:, :, 0], dtype=np.int64)
     for i, mesh in enumerate(meshes):
@@ -238,7 +242,8 @@ def run_time_binned(sim_name, n_time_point=25):
 
     dist_from_mid = np.sqrt(x[..., 0] ** 2 + x[..., 1] ** 2)
 
-    angle_classes = np.digitize(np.arctan2(x[..., 1], x[..., 0]), angle_bins)
+    angles = np.arctan2(x[..., 1], x[..., 0])
+    angle_classes = np.digitize((angles + np.pi/4) % (2 * np.pi) - np.pi, angle_bins)
     angle_classes = np.mod(angle_classes - 7,8)
     radius_classes = np.digitize(dist_from_mid, radius_bins)
 
@@ -268,12 +273,15 @@ def run_time_binned(sim_name, n_time_point=25):
 
 
 
+
 if __name__ == "__main__":
     if not os.path.exists("../analysis_results"):
         os.mkdir("../analysis_results")
 
-    df_a = pd.read_csv("../scan_summary/to_run_analysis.csv")
-    to_run_idx = df_a["to_run"].values
+    file_names = open("../scan_summary/analysis_ran.txt").readlines()
+    file_index = np.array([int(nm.split("_")[-2]) for nm in file_names])
+    to_run_idx = sorted(list(set(np.arange(int(20**4))).difference(set(file_index))))
+
     i = to_run_idx[int(sys.argv[1])]
     sim_name = "22072023_W01_AVEp0_VEp0_%d"%i
     run(sim_name)
