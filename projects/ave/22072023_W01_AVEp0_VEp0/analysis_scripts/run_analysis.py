@@ -115,7 +115,7 @@ def run(sim_name,meshes):
     df.to_csv("../analysis_results/all/%s_analysis.csv" % (sim_name), index=None)
 
 
-def run_time_binned(sim_name, meshes,n_time_point=101):
+def run_time_binned(sim_name, meshes,n_time_point=25):
     pikd = open("../scan_dicts/%s.pickle" % sim_name, 'rb')
     scan_dict = pickle.load(pikd)
     pikd.close()
