@@ -111,7 +111,7 @@ def run(sim_name):
     df.to_csv("../analysis_results/all/%s_analysis.csv" % (sim_name), index=None)
 
 
-def run_time_binned(sim_name, n_time_point=101):
+def run_time_binned(sim_name, n_time_point=25):
     pikd = open("../scan_dicts/%s.pickle" % sim_name, 'rb')
     scan_dict = pickle.load(pikd)
     pikd.close()
@@ -164,7 +164,7 @@ def run_time_binned(sim_name, n_time_point=101):
     x_original = np.array(x,dtype=np.float32)[rng]
     x = apply_rotation(x_original, mid_point, rotation_matrix)
     tri = tri_save[rng]
-    meshes = geo.mesh_assembler(x_original, tri, L, run_options)
+    meshes = geo.mesh_assembler(x, tri, L, run_options)
     eccentricities, P, A, N_neighbours = np.zeros_like(x[:, :, 0]), np.zeros_like(x[:, :, 0]), np.zeros_like(
         x[:, :, 0]), np.zeros_like(x[:, :, 0], dtype=np.int64)
     for i, mesh in enumerate(meshes):
