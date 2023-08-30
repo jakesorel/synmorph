@@ -168,7 +168,7 @@ def run_time_binned(sim_name, meshes,n_time_point=25):
     x_original = np.array(x,dtype=np.float32)[rng]
     x = apply_rotation(x_original, mid_point, rotation_matrix)
     tri = tri_save[rng]
-    # meshes = geo.mesh_assembler(x_original, tri, L, run_options)
+    meshes = geo.mesh_assembler(x_original, tri, L, run_options)
     eccentricities, P, A, N_neighbours = np.zeros_like(x[:, :, 0]), np.zeros_like(x[:, :, 0]), np.zeros_like(
         x[:, :, 0]), np.zeros_like(x[:, :, 0], dtype=np.int64)
     for i, mesh in enumerate(meshes):
@@ -242,7 +242,8 @@ def run_time_binned(sim_name, meshes,n_time_point=25):
 
     dist_from_mid = np.sqrt(x[..., 0] ** 2 + x[..., 1] ** 2)
 
-    angle_classes = np.digitize(np.arctan2(x[..., 1], x[..., 0]), angle_bins)
+    angles = np.arctan2(x[..., 1], x[..., 0])
+    angle_classes = np.digitize((angles + np.pi/4) % (2 * np.pi) - np.pi, angle_bins)
     angle_classes = np.mod(angle_classes - 7,8)
     radius_classes = np.digitize(dist_from_mid, radius_bins)
 
