@@ -284,7 +284,25 @@ if __name__ == "__main__":
 
     i = to_run_idx[int(sys.argv[1])]
     sim_name = "22072023_W01_AVEp0_VEp0_%d"%i
-    run(sim_name)
-    run_time_binned(sim_name)
+
+    pikd = open("../scan_dicts/%s.pickle" % sim_name, 'rb')
+    scan_dict = pickle.load(pikd)
+    pikd.close()
+
+    L = scan_dict["tissue_params"]["L"]
+    sim_dict = load_hdf5_skeleton("../scan_results/%s_simulation.h5.gz" % sim_name, L)
+
+    run_options = scan_dict["run_options"]
+
+    x = np.array(sim_dict["x_save"], dtype=np.float32)
+    t = np.arange(0, scan_dict["simulation_params"]["tfin"],
+                  scan_dict["simulation_params"]["dt"] * scan_dict["simulation_params"]["tskip"], dtype=np.float32)
+    tri = np.array(sim_dict["tri_save"], dtype=np.int32)
+    c_types = np.array(sim_dict["c_types"], dtype=np.int32)
+    # x_unwrapped = sp.unwrap_positions(x, L)
+    meshes = geo.mesh_assembler(x, tri, L, run_options)
+
+    run(sim_name, meshes)
+    run_time_binned(sim_name, meshes)
 
 
