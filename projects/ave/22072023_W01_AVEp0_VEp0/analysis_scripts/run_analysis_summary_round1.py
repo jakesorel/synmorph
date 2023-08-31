@@ -20,12 +20,9 @@ def extract_scores(i):
         if mask95.size!=0:
             t_95_distance = df["t"].values[mask95][0]
             AVE_contiguous = df["AVE_connected_components"].values[mask95][0]
-        out =  i,max_AVE_distance,percentile95_distance,t_95_distance,AVE_contiguous
+        return max_AVE_distance,percentile95_distance,t_95_distance,AVE_contiguous
     except:
-        out = i, np.nan,np.nan,np.nan,np.nan
-    file = open("../analysis_results/minimal/%i.txt"%slurm_index,"w+")
-    file.write(",".join(np.array(out).astype(str)) + "\n")
-    file.close()
+        return np.nan,np.nan,np.nan,np.nan
 
 if __name__ == "__main__":
 
@@ -38,3 +35,7 @@ if __name__ == "__main__":
     range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
 
     results = np.array(Parallel(n_jobs=-1, backend="loky", prefer="threads")(delayed(extract_scores)(i) for i in range_to_sample))
+    df_out = pd.DataFrame(results)
+    df_out.columns = "max_AVE_distance,percentile95_distance,t_95_distance,AVE_contiguous".split(",")
+    df_out.index = range_to_sample
+    df_out.to_csv("../analysis_results/minimal/block_%d.csv"%slurm_index)
