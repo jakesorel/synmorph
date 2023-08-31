@@ -20,10 +20,10 @@ def extract_scores(i):
         if mask95.size!=0:
             t_95_distance = df["t"].values[mask95][0]
             AVE_contiguous = df["AVE_connected_components"].values[mask95][0]
-        out =  i,max_AVE_distance,percentile95_distance,t_95_distance,AVE_contiguous
+        out = i,max_AVE_distance,percentile95_distance,t_95_distance,AVE_contiguous
     except:
         out = i, np.nan,np.nan,np.nan,np.nan
-    file = open("../analysis_results/minimal/%i.txt"%slurm_index,"w+")
+    file = open("../analysis_results/minimal/%i.txt"%i,"w+")
     file.write(",".join(np.array(out).astype(str)) + "\n")
     file.close()
 
