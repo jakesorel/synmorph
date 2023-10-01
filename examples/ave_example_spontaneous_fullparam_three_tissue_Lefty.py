@@ -46,16 +46,16 @@ It seems like the velocity needs to be not too high such that the AVE stalls.
 
 
 W01 = 0.1
-AVE_p0 = 3.0
+AVE_p0 = 3.7
 VE_p0 = 4.4
 AVE_v0 = 0.05
-lambda_P = 0.2
+lambda_P = 0.1
 seed = 2023
 
 
 tissue_params = {"L": 25,
                  "A0": 1.,
-                 "P0": 3.4,
+                 "P0": 4.4,
                  "kappa_A": 1.,
                  "kappa_P": lambda_P,
                  "W": (np.array(((0.0, W01, W01, 0.1), (W01, 0, 0, 0.5), (W01, 0, 0, 0.5),
@@ -86,7 +86,7 @@ grn_params = {"n_AVE_cells": 20,
               "exe_frac": 0.45,
               "AVE_p0": AVE_p0,
               "nonAVE_p0": VE_p0,
-              "ExEVE_p0": 3.4}
+              "ExEVE_p0": VE_p0}
 save_options = {"save": "hdf5",
                 "result_dir": "../scan_results",
                 "name": "AVE_example_full",
@@ -118,8 +118,20 @@ sim.simulate(progress_bar=True)
 
 sim.animate_c_types(n_frames=15,
                     c_type_col_map=["#4bdb71", "#ffbb4d","green","white"],
-                    file_name="three tissue")
+                    file_name="three tissue Lefty1")
 #
+
+A = sim.t.mesh.A
+P = sim.t.mesh.P
+A0 = sim.t.A0
+P0 = sim.t.P0
+
+val_averages = np.zeros((3,4))
+for i in range(3):
+    for j, val in enumerate([A,P,A0,P0]):
+        val_averages[i,j] = val[sim.t.c_types==i].mean()
+
+
 
 i_range = np.arange(0,360,360/6).astype(int)
 
@@ -127,7 +139,7 @@ for j, i in enumerate([0]+list(i_range)):
     fig, ax = plt.subplots(figsize=(4,4))
 
     plot.plot_vor(ax,sim.x_save[i].astype(np.float32),sim.t.tissue_params["L"],cols=plot.generate_ctype_cols(sim.t.c_types,c_type_col_map=["#399cc3", "#e4e4e4","#cbcccc","white"]))
-    fig.savefig("results/dynamics 3 tissue_%d.pdf"%j,dpi=300)
+    fig.savefig("results/dynamics 3 Lefty tissue_%d.pdf"%j,dpi=300)
 
 
 

@@ -33,8 +33,8 @@ class Force:
 
     def get_J(self):
         ##for now only with ref. to W, but generalizable.
-        self.Jp = get_J(self.t.W, self.t.tc_types, self.t.tc_typesp, self.t.nc_types)
-        self.Jm = get_J(self.t.W, self.t.tc_types, self.t.tc_typesm, self.t.nc_types)
+        self.Jp = get_J(self.t.W, self.t.tc_types, self.t.tc_typesp, np.max(self.t.c_types)+1)
+        self.Jm = get_J(self.t.W, self.t.tc_types, self.t.tc_typesm, np.max(self.t.c_types)+1)
 
     def get_F_mechanics(self):
         """

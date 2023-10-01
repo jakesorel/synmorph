@@ -4,6 +4,7 @@ import numpy as np
 import synmorph as sm
 from synmorph.analysis import spatial
 import synmorph.analysis.topological as top
+from synmorph import sim_plotting as plot
 
 
 """
@@ -46,7 +47,7 @@ boundary_frac = 0.08
 L = np.sqrt(n_cells/np.pi)/((1-boundary_frac)/2)
 L = 15
 
-lambda_P = 0.1
+lambda_P = 0.2
 W01 = 0.1
 
 
@@ -67,7 +68,7 @@ init_params = {"init_noise": 0.1,
 run_options = {"equiangulate": True,
                "equi_nkill": 10}
 simulation_params = {"dt": 0.05,
-                     "tfin": 80,
+                     "tfin": 500,
                      "tskip": 10,
                      "dt_grn": 0.025,
                      "grn_sim": "grn_ave_couple_orientation",
@@ -76,14 +77,15 @@ simulation_params = {"dt": 0.05,
 grn_params = {"n_AVE_cells":20,
               "AVE_alpha_dir":1,
               "non_AVE_alpha_dir":0,
-              "AVE_v0":1e-1,
+              "AVE_v0":0.05,
               "non_AVE_v0":0,
               "AVE_alpha0":-np.pi/2,
               "boundary_frac":0.08,
               "AVE_A0":0.54,
               "exe_frac":0.0,
-              "AVE_p0":5.,
-              "nonAVE_p0":5.}
+              "AVE_p0":3.6,
+              "nonAVE_p0":3.9,
+              "ExEVE_p0": 4.0}
 save_options = {"save": "skeleton",
                 "result_dir": "results",
                 "name": "AVE_example2",
@@ -95,6 +97,13 @@ sim = sm.simulation(tissue_params=tissue_params,
                     grn_params=grn_params,
                     run_options=run_options,
                     save_options=save_options)
+
+sim.initialize()
+fig, ax = plt.subplots()
+plot.plot_vor(ax, sim.t.mesh.x, sim.t.tissue_params["L"],
+              cols=plot.generate_ctype_cols(sim.t.c_types,
+                                            c_type_col_map=["#399cc3", "lightgrey", "green", "white"]))
+fig.show()
 
 sim.save_dir_plots = "results"
 sim.simulate(progress_bar=True)

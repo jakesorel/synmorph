@@ -1,15 +1,24 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+import os
+
+files = []
+for fl in sorted(os.listdir("projects/ave/22072023_W01_AVEp0_VEp0/analysis_results/compiled/selected/by_position_class/W01minAVEmaxVEmax")):
+    if ".csv" in fl:
+        files.append(fl)
+
+df = pd.DataFrame()
+for i, file in enumerate(files):
+    dfi = pd.read_csv("projects/ave/22072023_W01_AVEp0_VEp0/analysis_results/compiled/selected/by_position_class/W01minAVEmaxVEmax/"+file)
+    dfi["index"] = i
+    df = pd.concat((df,dfi[dfi["t"] == 120.]))
+
+values = {}
+for key in df.columns:
+    values[key] = df[key].values.reshape(20,16)
 
 
-data = np.array([2.83333333, 1.6, 1.75, 2.6, 0.875, 1.75])
-
-N = len(data)
-theta = np.linspace(0.0, 2 * np.pi, N, endpoint=False)
-radii = data
-width = 2 * np.pi / N
-
-ax = plt.subplot(111, polar=True)
 
 
 def plot_polar_bar(vals,R,ax,cmap,vmin=0,vmax=1,zorder=0):
@@ -35,8 +44,8 @@ def plot_polar_bar(vals,R,ax,cmap,vmin=0,vmax=1,zorder=0):
 
 def make_polar_heatmap(ax,vals,cmap,label="Feature",alpha_percentile=0):
     vmin,vmax = np.percentile(vals,alpha_percentile),np.percentile(vals,100-alpha_percentile)
-    ax = plot_polar_bar(vals[:4],1,ax,cmap,vmin,vmax)
-    ax = plot_polar_bar(vals[4:8],2,ax,cmap,vmin,vmax,zorder=-1)
+    ax = plot_polar_bar(vals[:8],1,ax,cmap,vmin,vmax)
+    ax = plot_polar_bar(vals[8:16],2,ax,cmap,vmin,vmax,zorder=-1)
     ax.set_yticks([])
     ax.xaxis.grid(False)
     ax.yaxis.grid(False)
@@ -45,13 +54,16 @@ def make_polar_heatmap(ax,vals,cmap,label="Feature",alpha_percentile=0):
     cl = plt.colorbar(sm, ax=ax, pad=0.1, fraction=0.02, aspect=10, orientation="vertical")
     cl.set_label(label)
     ax.set_xticks([0,np.pi/2,np.pi,np.pi*3/2])
-    ax.set_theta_zero_location("N")
+    ax.set_theta_zero_location("S")
     ax.set_theta_direction(-1)
 
     return ax
 
 fig, ax = plt.subplots()
-cmap = plt.cm.plasma
-ax = make_polar_heatmap(ax,[1,2,3,4,5,6,7,8],cmap)
+cmap = plt.cm.Reds
+ax = make_polar_heatmap(ax,values["cum_ant_speed"].mean(axis=-1),cmap)
 
 fig.show()
+
+
+SI_t = dfi.SI.values.reshape(24,16)

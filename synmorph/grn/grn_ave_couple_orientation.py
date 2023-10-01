@@ -79,7 +79,7 @@ class Grn_ave_couple_orientation:
     def set_shape_index(self):
         self.t.P0[self.ave_mask] = np.sqrt(self.t.A0[self.ave_mask])*self.params["AVE_p0"]
         self.t.P0[self.epi_mask] = np.sqrt(self.t.A0[self.epi_mask])*self.params["nonAVE_p0"]
-        # self.t.P0[self.exe_mask] = np.sqrt(self.t.A0[self.exe_mask])*self.params["ExEVE_p0"]
+        self.t.P0[self.exe_mask] = np.sqrt(self.t.A0[self.exe_mask])*self.params["ExEVE_p0"]
 
     #
     # def get_average_orientation(self):

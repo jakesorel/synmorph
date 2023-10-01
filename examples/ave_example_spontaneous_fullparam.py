@@ -38,9 +38,9 @@ AVE-EPI
 
 W01 = 0.1
 AVE_p0 = 3.4
-VE_p0 = 4.3
-AVE_v0 = 1e-1
-lambda_P = 0.1
+VE_p0 = 3.4
+AVE_v0 = 0.05
+lambda_P = 0.2
 seed = 2023
 
 
@@ -59,8 +59,8 @@ init_params = {"init_noise": 0.1,
                "c_type_proportions": (1.0, 0)}
 run_options = {"equiangulate": True,
                "equi_nkill": 10}
-simulation_params = {"dt": 0.10,
-                     "tfin": 300,
+simulation_params = {"dt": 0.1,
+                     "tfin": 600,
                      "tskip": 10,
                      "dt_grn": 0.025,
                      "grn_sim": "grn_ave_couple_orientation",
@@ -76,7 +76,8 @@ grn_params = {"n_AVE_cells": 20,
               "AVE_A0": 0.54,
               "exe_frac": 0.0,
               "AVE_p0": AVE_p0,
-              "nonAVE_p0": VE_p0}
+              "nonAVE_p0": VE_p0,
+              "ExEVE_p0": 4.0}
 save_options = {"save": "hdf5",
                 "result_dir": "../scan_results",
                 "name": "AVE_example_full",
