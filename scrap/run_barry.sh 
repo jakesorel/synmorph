@@ -1,0 +1,19 @@
+#!/bin/bash
+
+#Submit this script with: sbatch --array [1-15] --output=../bash_out/output_%A_%a.out --error=../bash_out/error_%A_%a.out run_barry.sh ${SLURM_ARRAY_TASK_ID}
+
+#SBATCH --partition=hmem
+#SBATCH --cpus-per-task=12
+#SBATCH --job-name=runpyjake2
+#SBATCH --mem=800G
+#SBATCH -n 1
+#SBATCH --time=72:00:00
+#SBATCH --mail-type=END,FAIL
+#SBATCH --mail-user=joaquina.delas@crick.ac.uk
+
+mkdir -p bash_out
+
+eval "$(conda shell.bash hook)"
+source activate pyJake
+
+python srun_scriptJake_4-7_elbow.py ${SLURM_ARRAY_TASK_ID}
