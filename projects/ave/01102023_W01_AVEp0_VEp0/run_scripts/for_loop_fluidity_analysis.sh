@@ -12,6 +12,6 @@
 
 
 
-sbatch --array [208-209] run_fluidity_analysis.sh ${SLURM_ARRAY_TASK_ID}
+sbatch --array [0-399] run_fluidity_analysis.sh ${SLURM_ARRAY_TASK_ID}
 
 

@@ -119,7 +119,7 @@ if __name__ == "__main__":
     range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
 
     def run_analysis_all(i):
-        sim_name = "22072023_W01_AVEp0_VEp0_%d" % i
+        sim_name = "01102023_W01_AVEp0_VEp0_%d" % i
 
         run(sim_name)
 
