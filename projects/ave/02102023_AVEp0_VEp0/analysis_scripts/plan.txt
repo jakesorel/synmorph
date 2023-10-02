@@ -1,0 +1,21 @@
+Plan for analysis
+
+The basic analysis will test the extent of AVE movement.
+
+Movement
+--------
+1) Centroid of AVE cells by time
+2) Average speed of AVE cells by time
+3) Average velocity of AVE cells by time
+
+Contiguity
+---------
+1) Number of AVE clusters by time
+
+Shape
+-----
+1) Average shape index
+2) Average perimeter
+3) Average eccentricity
+
+
