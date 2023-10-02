@@ -11,7 +11,7 @@ from joblib import Parallel,delayed
 
 def extract_scores(i):
     try:
-        df = pd.read_csv('../analysis_results/all/02102023_W01_AVEp0_VEp0_%i_analysis.csv'%i)
+        df = pd.read_csv('../analysis_results/all/02102023_AVEp0_VEp0_%i_analysis.csv'%i)
         d = df["av_av_AVE_d"].values
         max_AVE_distance = d.max()
         percentile95_distance = np.percentile(d,95)
