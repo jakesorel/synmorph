@@ -46,8 +46,8 @@ It seems like the velocity needs to be not too high such that the AVE stalls.
 
 
 W01 = 0.1
-AVE_p0 = 3.0
-VE_p0 = 4.4
+AVE_p0 = 3.5
+VE_p0 = 4.0
 AVE_v0 = 0.05
 lambda_P = 0.2
 seed = 2023
@@ -76,7 +76,7 @@ simulation_params = {"dt": 0.25,
                      "tinit": 10,
                      "random_seed": int(seed)}
 grn_params = {"n_AVE_cells": 20,
-              "AVE_alpha_dir": 0.15,
+              "AVE_alpha_dir": 0.2,
               "non_AVE_alpha_dir": 0.,
               "AVE_v0": AVE_v0,
               "non_AVE_v0": 0.,

@@ -181,9 +181,9 @@ if __name__ == "__main__":
                 fcntl.flock(g, fcntl.LOCK_UN)
 
         N = 20
-        M = 100
+        M = 20
         total_sims = N**2 * M
-        sims_per_lot = 200
+        sims_per_lot = 20
         slurm_index = int(sys.argv[1])
         print("Slurm index", slurm_index)
         range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
@@ -232,10 +232,10 @@ if __name__ == "__main__":
                                "c_type_proportions": (1.0, 0)}
                 run_options = {"equiangulate": equiangulate,
                                "equi_nkill": 10}
-                simulation_params = {"dt": 0.10,
+                simulation_params = {"dt": 0.05,
                                      "tfin": 300,
-                                     "tskip": 10,
-                                     "dt_grn": 0.025,
+                                     "tskip": 20,
+                                     "dt_grn": 0.05,
                                      "grn_sim": "grn_ave_couple_orientation",
                                      "tinit": 10,
                                      "random_seed": int(seed)}
@@ -248,8 +248,8 @@ if __name__ == "__main__":
                               "boundary_frac": 0.08,
                               "AVE_A0": 0.54,
                               "exe_frac": 0.0,
-                              "AVE_p0": 3.4,
-                              "nonAVE_p0": 4.0,
+                              "AVE_p0": AVE_p0,
+                              "nonAVE_p0": VE_p0,
                               "ExEVE_p0": 4.0}
                 save_options = {"save": "hdf5",
                                 "result_dir": "../scan_results",
@@ -278,7 +278,7 @@ if __name__ == "__main__":
                 print("Simulation completed in ", np.round(t_1-t_0),"s")
             else:
                 print("Simulation %d exists, skipping"%i)
-            # run_analysis("02102023_AVEp0_VEp0_%d" % i)
+            run_analysis("02102023_AVEp0_VEp0_%d" % i)
 
         # @exit_after(500)
         # def run_job_timed(i):
@@ -290,7 +290,7 @@ if __name__ == "__main__":
         #
 
         t_tot_0 = time.time()
-        Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
+        Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
 
         #
         # for i in range_to_sample:
