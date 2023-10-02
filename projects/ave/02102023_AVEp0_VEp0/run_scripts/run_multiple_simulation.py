@@ -217,7 +217,7 @@ if __name__ == "__main__":
                     g.write(scan_dict_name + "\n")
                     fcntl.flock(g, fcntl.LOCK_UN)
 
-                tissue_params = {"L": 16.8,
+                tissue_params = {"L": 17.0,
                                  "A0": 1.,
                                  "P0": 3.4,
                                  "kappa_A": 1.,
