@@ -186,6 +186,10 @@ if __name__ == "__main__":
     print("Slurm index", slurm_index)
     range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
 
+    def run_analysis_i(i):
+        run_analysis("02102023_AVEp0_VEp0_%d" % i)
+
+
     def run_job(i,equiangulate=True):
         t_0 = time.time()
         if not os.path.exists("../scan_results/02102023_AVEp0_VEp0_%d_simulation.h5.gz"%i):
@@ -276,7 +280,6 @@ if __name__ == "__main__":
             print("Simulation completed in ", np.round(t_1-t_0),"s")
         else:
             print("Simulation %d exists, skipping"%i)
-        run_analysis("02102023_AVEp0_VEp0_%d" % i)
 
     # @exit_after(500)
     # def run_job_timed(i):
@@ -288,14 +291,18 @@ if __name__ == "__main__":
     #
 
     t_tot_0 = time.time()
+    Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
     Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
     Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+
+    Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_analysis_i)(i) for i in range_to_sample)
+
 
     #
     # for i in range_to_sample:
