@@ -236,7 +236,7 @@ if __name__ == "__main__":
                                "equi_nkill": 10}
                 simulation_params = {"dt": 0.10,
                                      "tfin": 450,
-                                     "tskip": 10,
+                                     "tskip": 15,
                                      "dt_grn": 0.025,
                                      "grn_sim": "grn_ave_couple_orientation",
                                      "tinit": 10,
