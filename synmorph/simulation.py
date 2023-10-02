@@ -222,7 +222,7 @@ class Simulation:
             if not i % self.tskip:
                 ## for the saving time-points, copy over to x_save (and also var_save)
                 self.x_save[k] = self.t.mesh.x
-                try:
+                try: ##debugging code
                     self.tri_save[k] = self.t.mesh.tri
                 except:
                     print("k,i",k,i)

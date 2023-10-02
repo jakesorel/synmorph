@@ -163,155 +163,154 @@ def run_analysis(sim_name):
 
 
 if __name__ == "__main__":
-    try:
+    base_name = "02102023_AVEp0_VEp0"
 
-        base_name = "02102023_AVEp0_VEp0"
+    if not os.path.exists("../scan_summary/%s_full_summary.csv" % base_name):
+        with open("../scan_summary/%s_full_summary.csv" % base_name, "w+") as g:
+            fcntl.flock(g, fcntl.LOCK_EX)
+            g.write("counter,W01,AVE_p0,VE_p0,seed,scan_dict_name\n")
+            fcntl.flock(g, fcntl.LOCK_UN)
+            # g.close()
 
-        if not os.path.exists("../scan_summary/%s_full_summary.csv" % base_name):
-            with open("../scan_summary/%s_full_summary.csv" % base_name, "w+") as g:
+    if not os.path.exists("../scan_summary/%s_path_names.txt" % base_name):
+        with open("../scan_summary/%s_path_names.txt" % base_name, "w+") as g:
+            fcntl.flock(g, fcntl.LOCK_EX)
+            # g.write("path_name\n")
+            fcntl.flock(g, fcntl.LOCK_UN)
+
+    N = 20
+    M = 100
+    total_sims = N**2 * M
+    sims_per_lot = 100
+    slurm_index = int(sys.argv[1])
+    print("Slurm index", slurm_index)
+    range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
+
+    def run_job(i,equiangulate=True):
+        t_0 = time.time()
+        if not os.path.exists("../scan_results/02102023_AVEp0_VEp0_%d_simulation.h5.gz"%i):
+            print("Simulating %d" % i)
+            [i1, i2, j] = np.unravel_index(i, (N, N, M))
+
+            AVE_p0_range = np.linspace(3.4, 4.5, N)
+            VE_p0_range = np.linspace(3.4, 4.5, N)
+            seed_range = 2023 + np.arange(M, dtype=int)
+            W01 = 0.0
+            AVE_p0 = AVE_p0_range[i1]
+            VE_p0 = VE_p0_range[i2]
+            AVE_v0 = 0.05
+            lambda_P = 0.2
+            seed = seed_range[j]
+
+            scan_dict_name = base_name + "_" + "%s" % i
+            df_entry = np.array([i, W01, AVE_p0, VE_p0, seed, scan_dict_name])
+
+            with open("../scan_summary/%s_full_summary.csv" % (base_name), "a+") as g:
                 fcntl.flock(g, fcntl.LOCK_EX)
-                g.write("counter,W01,AVE_p0,VE_p0,seed,scan_dict_name\n")
+                g.write(",".join(df_entry.astype(str)) + "\n")
                 fcntl.flock(g, fcntl.LOCK_UN)
-                # g.close()
 
-        if not os.path.exists("../scan_summary/%s_path_names.txt" % base_name):
-            with open("../scan_summary/%s_path_names.txt" % base_name, "w+") as g:
+            with open("../scan_summary/%s_path_names.txt" % (base_name), "a+") as g:
                 fcntl.flock(g, fcntl.LOCK_EX)
-                # g.write("path_name\n")
+                g.write(scan_dict_name + "\n")
                 fcntl.flock(g, fcntl.LOCK_UN)
 
-        N = 20
-        M = 100
-        total_sims = N**2 * M
-        sims_per_lot = 100
-        slurm_index = int(sys.argv[1])
-        print("Slurm index", slurm_index)
-        range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
+            tissue_params = {"L": 17.0,
+                             "A0": 1.,
+                             "P0": 3.4,
+                             "kappa_A": 1.,
+                             "kappa_P": lambda_P,
+                             "W": (np.array(((0.0, W01, W01, 0.1), (W01, 0, 0, 0.5), (W01, 0, 0, 0.5),
+                                             (0.1, 0.5, 0.5, 0.1))) * 1).astype(np.float32),
+                             "a": 0.,
+                             "k": 0.}
+            active_params = {"v0": 2e-1,
+                             "Dr": 5e-3}
+            init_params = {"init_noise": 0.1,
+                           "c_type_proportions": (1.0, 0)}
+            run_options = {"equiangulate": equiangulate,
+                           "equi_nkill": 10}
+            simulation_params = {"dt": 0.05,
+                                 "tfin": 300,
+                                 "tskip": 20,
+                                 "dt_grn": 0.05,
+                                 "grn_sim": "grn_ave_couple_orientation",
+                                 "tinit": 10,
+                                 "random_seed": int(seed)}
+            grn_params = {"n_AVE_cells": 20,
+                          "AVE_alpha_dir": 0.2,
+                          "non_AVE_alpha_dir": 0,
+                          "AVE_v0": 0.05,
+                          "non_AVE_v0": 0,
+                          "AVE_alpha0": np.pi / 2,
+                          "boundary_frac": 0.08,
+                          "AVE_A0": 0.54,
+                          "exe_frac": 0.0,
+                          "AVE_p0": AVE_p0,
+                          "nonAVE_p0": VE_p0,
+                          "ExEVE_p0": 4.0}
+            save_options = {"save": "hdf5",
+                            "result_dir": "../scan_results",
+                            "name": scan_dict_name,
+                            "compressed": True}
 
-        def run_job(i,equiangulate=True):
-            t_0 = time.time()
-            if not os.path.exists("../scan_results/02102023_AVEp0_VEp0_%d_simulation.h5.gz"%i):
-                print("Simulating %d" % i)
-                [i1, i2, j] = np.unravel_index(i, (N, N, M))
+            scan_dict = {"tissue_params": tissue_params, "active_params": active_params, "init_params": init_params,
+                         "run_options": run_options, "simulation_params": simulation_params, "grn_params": grn_params,
+                         "save_options": save_options}
 
-                AVE_p0_range = np.linspace(3.4, 4.5, N)
-                VE_p0_range = np.linspace(3.4, 4.5, N)
-                seed_range = 2023 + np.arange(M, dtype=int)
-                W01 = 0.0
-                AVE_p0 = AVE_p0_range[i1]
-                VE_p0 = VE_p0_range[i2]
-                AVE_v0 = 0.05
-                lambda_P = 0.2
-                seed = seed_range[j]
+            pikd = open("../scan_dicts/%s" % scan_dict_name + ".pickle", 'wb')
+            pickle.dump(scan_dict, pikd)
+            pikd.close()
+            print(i)
 
-                scan_dict_name = base_name + "_" + "%s" % i
-                df_entry = np.array([i, W01, AVE_p0, VE_p0, seed, scan_dict_name])
+            path_name = "../scan_dicts/%s" % scan_dict_name + ".pickle"
 
-                with open("../scan_summary/%s_full_summary.csv" % (base_name), "a+") as g:
-                    fcntl.flock(g, fcntl.LOCK_EX)
-                    g.write(",".join(df_entry.astype(str)) + "\n")
-                    fcntl.flock(g, fcntl.LOCK_UN)
+            t0 = time.time()
+            run_simulation(path_name)
+            t1 = time.time()
+            print(t1 - t0)
+            out_file = open("../scan_summary/02102023_AVEp0_VEp0_result_log.txt", "a")
+            out_file.write("%s_%.2f" % (path_name, (t1 - t0)) + "\n")
+            out_file.close()
+            t_1 = time.time()
+            print("Simulation completed in ", np.round(t_1-t_0),"s")
+        else:
+            print("Simulation %d exists, skipping"%i)
+        run_analysis("02102023_AVEp0_VEp0_%d" % i)
 
-                with open("../scan_summary/%s_path_names.txt" % (base_name), "a+") as g:
-                    fcntl.flock(g, fcntl.LOCK_EX)
-                    g.write(scan_dict_name + "\n")
-                    fcntl.flock(g, fcntl.LOCK_UN)
+    # @exit_after(500)
+    # def run_job_timed(i):
+    #     return run_job(i,True)
+    #
+    # @exit_after(1800)
+    # def run_job_timed_no_equiangulate(i):
+    #     return run_job(i,False)
+    #
 
-                tissue_params = {"L": 17.0,
-                                 "A0": 1.,
-                                 "P0": 3.4,
-                                 "kappa_A": 1.,
-                                 "kappa_P": lambda_P,
-                                 "W": (np.array(((0.0, W01, W01, 0.1), (W01, 0, 0, 0.5), (W01, 0, 0, 0.5),
-                                                 (0.1, 0.5, 0.5, 0.1))) * 1).astype(np.float32),
-                                 "a": 0.,
-                                 "k": 0.}
-                active_params = {"v0": 2e-1,
-                                 "Dr": 5e-3}
-                init_params = {"init_noise": 0.1,
-                               "c_type_proportions": (1.0, 0)}
-                run_options = {"equiangulate": equiangulate,
-                               "equi_nkill": 10}
-                simulation_params = {"dt": 0.05,
-                                     "tfin": 300,
-                                     "tskip": 20,
-                                     "dt_grn": 0.05,
-                                     "grn_sim": "grn_ave_couple_orientation",
-                                     "tinit": 10,
-                                     "random_seed": int(seed)}
-                grn_params = {"n_AVE_cells": 20,
-                              "AVE_alpha_dir": 0.2,
-                              "non_AVE_alpha_dir": 0,
-                              "AVE_v0": 0.05,
-                              "non_AVE_v0": 0,
-                              "AVE_alpha0": np.pi / 2,
-                              "boundary_frac": 0.08,
-                              "AVE_A0": 0.54,
-                              "exe_frac": 0.0,
-                              "AVE_p0": AVE_p0,
-                              "nonAVE_p0": VE_p0,
-                              "ExEVE_p0": 4.0}
-                save_options = {"save": "hdf5",
-                                "result_dir": "../scan_results",
-                                "name": scan_dict_name,
-                                "compressed": True}
+    t_tot_0 = time.time()
+    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
 
-                scan_dict = {"tissue_params": tissue_params, "active_params": active_params, "init_params": init_params,
-                             "run_options": run_options, "simulation_params": simulation_params, "grn_params": grn_params,
-                             "save_options": save_options}
+    #
+    # for i in range_to_sample:
+    #     run_job(i,equiangulate=True)
+    #     # try:
+    #     #     run_job_timed(i)
+    #     # except:
+    #     #     print("Equiangulation timed out")
+    #     #     try:
+    #     #         run_job_timed_no_equiangulate(i)
+    #     #     except:
+    #     #         print("Forced triangulation timed out too.. giving up")
 
-                pikd = open("../scan_dicts/%s" % scan_dict_name + ".pickle", 'wb')
-                pickle.dump(scan_dict, pikd)
-                pikd.close()
-                print(i)
-
-                path_name = "../scan_dicts/%s" % scan_dict_name + ".pickle"
-
-                t0 = time.time()
-                run_simulation(path_name)
-                t1 = time.time()
-                print(t1 - t0)
-                out_file = open("../scan_summary/02102023_AVEp0_VEp0_result_log.txt", "a")
-                out_file.write("%s_%.2f" % (path_name, (t1 - t0)) + "\n")
-                out_file.close()
-                t_1 = time.time()
-                print("Simulation completed in ", np.round(t_1-t_0),"s")
-            else:
-                print("Simulation %d exists, skipping"%i)
-            run_analysis("02102023_AVEp0_VEp0_%d" % i)
-
-        # @exit_after(500)
-        # def run_job_timed(i):
-        #     return run_job(i,True)
-        #
-        # @exit_after(1800)
-        # def run_job_timed_no_equiangulate(i):
-        #     return run_job(i,False)
-        #
-
-        t_tot_0 = time.time()
-        Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-
-        #
-        # for i in range_to_sample:
-        #     run_job(i,equiangulate=True)
-        #     # try:
-        #     #     run_job_timed(i)
-        #     # except:
-        #     #     print("Equiangulation timed out")
-        #     #     try:
-        #     #         run_job_timed_no_equiangulate(i)
-        #     #     except:
-        #     #         print("Forced triangulation timed out too.. giving up")
-
-        t_tot_1 = time.time()
-        print("400 simulations completed in ",t_tot_0-t_tot_0,"s")
-        sys.exit(0)
-
-    except TerminatedWorkerError:
-        # Handle the error and initiate a restart
-        print("TerminatedWorkerError occurred. Restarting...")
-        sys.exit(1)  # Or any other action to restart the execution
+    t_tot_1 = time.time()
+    print("400 simulations completed in ",t_tot_0-t_tot_0,"s")
 
 
 """
