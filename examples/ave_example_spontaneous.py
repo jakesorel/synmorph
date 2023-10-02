@@ -48,10 +48,10 @@ L = np.sqrt(n_cells/np.pi)/((1-boundary_frac)/2)
 L = 15
 
 lambda_P = 0.2
-W01 = 0.1
+W01 = 0.0
 
 
-tissue_params = {"L": 15,
+tissue_params = {"L": 18,
                  "A0": 1,
                  "P0": 3.6,
                  "kappa_A": 1,
@@ -62,29 +62,29 @@ tissue_params = {"L": 15,
                  "a": 0,
                  "k": 0}
 active_params = {"v0": 1e-1,
-                 "Dr": 5e-3}
+                 "Dr": 1e-2}
 init_params = {"init_noise": 0.1,
                "c_type_proportions": (1.0, 0)}
 run_options = {"equiangulate": True,
                "equi_nkill": 10}
 simulation_params = {"dt": 0.05,
-                     "tfin": 500,
+                     "tfin": 250,
                      "tskip": 10,
                      "dt_grn": 0.025,
                      "grn_sim": "grn_ave_couple_orientation",
                      "tinit":10,
                      "random_seed":2022}
 grn_params = {"n_AVE_cells":20,
-              "AVE_alpha_dir":1,
+              "AVE_alpha_dir":0.2,
               "non_AVE_alpha_dir":0,
               "AVE_v0":0.05,
               "non_AVE_v0":0,
-              "AVE_alpha0":-np.pi/2,
+              "AVE_alpha0":np.pi/2,
               "boundary_frac":0.08,
               "AVE_A0":0.54,
               "exe_frac":0.0,
-              "AVE_p0":3.6,
-              "nonAVE_p0":3.9,
+              "AVE_p0":3.4,
+              "nonAVE_p0":4.0,
               "ExEVE_p0": 4.0}
 save_options = {"save": "skeleton",
                 "result_dir": "results",
@@ -107,6 +107,12 @@ fig.show()
 
 sim.save_dir_plots = "results"
 sim.simulate(progress_bar=True)
+
+fig, ax = plt.subplots()
+plot.plot_vor(ax, sim.t.mesh.x, sim.t.tissue_params["L"],
+              cols=plot.generate_ctype_cols(sim.t.c_types,
+                                            c_type_col_map=["#399cc3", "lightgrey", "green", "white"]))
+fig.show()
 
 sim.animate_c_types(n_frames=15,
                     c_type_col_map=["#4bdb71", "#ffbb4d","#ffbb4d","white"],

@@ -219,7 +219,7 @@ if __name__ == "__main__":
                     g.write(scan_dict_name + "\n")
                     fcntl.flock(g, fcntl.LOCK_UN)
 
-                tissue_params = {"L": 16.8,
+                tissue_params = {"L": 19,
                                  "A0": 1.,
                                  "P0": 3.4,
                                  "kappa_A": 1.,
@@ -242,17 +242,17 @@ if __name__ == "__main__":
                                      "tinit": 10,
                                      "random_seed": int(seed)}
                 grn_params = {"n_AVE_cells": 20,
-                              "AVE_alpha_dir": 0.15,
-                              "non_AVE_alpha_dir": 0.,
-                              "AVE_v0": AVE_v0,
-                              "non_AVE_v0": 0.,
-                              "AVE_alpha0": -np.pi / 2,
-                              "boundary_frac": 0.20,
+                              "AVE_alpha_dir": 0.2,
+                              "non_AVE_alpha_dir": 0,
+                              "AVE_v0": 0.05,
+                              "non_AVE_v0": 0,
+                              "AVE_alpha0": np.pi / 2,
+                              "boundary_frac": 0.08,
                               "AVE_A0": 0.54,
                               "exe_frac": 0.0,
-                              "AVE_p0": AVE_p0,
-                              "nonAVE_p0": VE_p0,
-                              "ExEVE_p0": 3.5}
+                              "AVE_p0": 3.4,
+                              "nonAVE_p0": 4.0,
+                              "ExEVE_p0": 4.0}
                 save_options = {"save": "hdf5",
                                 "result_dir": "../scan_results",
                                 "name": scan_dict_name,

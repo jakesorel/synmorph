@@ -82,37 +82,37 @@ class Grn_ave_couple_orientation:
         self.t.P0[self.exe_mask] = np.sqrt(self.t.A0[self.exe_mask])*self.params["ExEVE_p0"]
 
     #
-    # def get_average_orientation(self):
-    #     neighbourhood_mat = self.t.mesh.l_int != 0
-    #     neighbourhood_mat = neighbourhood_mat.toarray() * np.outer(self.ave_mask,self.ave_mask)
-    #     average_vec = neighbourhood_mat@self.t.active.orientation_vector / np.expand_dims(neighbourhood_mat.sum(axis=1),1)
-    #     average_vec[~self.ave_mask] = 0
-    #     average_orientation = np.arctan2(average_vec[:,1],average_vec[:,0])
-    #     mask_nan = np.isnan(average_orientation)
-    #     average_orientation[mask_nan] = 0
-    #     self.t.active.active_params["alpha_dir"][mask_nan] = 0
-    #     return average_orientation
-
     def get_average_orientation(self):
-        ##couple instead to the instantaneous speeds of the neighbouring cells (rather than purely their active components).
-        ## weighted average of neighbouring velocities.
-        if self.x is None:
-            self.x = self.t.mesh.x
-        current_vec = self.t.mesh.x - self.x
-        # if (current_vec == 0).any(): ##set random if there was no movement.
-        #     current_vec[current_vec == 0] = np.random.random((current_vec == 0).sum())
-        # current_vec = current_vec / np.expand_dims(np.sqrt(current_vec[...,0]**2 + current_vec[...,1]**2),1)
-        #
-
         neighbourhood_mat = self.t.mesh.l_int != 0
         neighbourhood_mat = neighbourhood_mat.toarray() * np.outer(self.ave_mask,self.ave_mask)
-        average_vec = neighbourhood_mat@current_vec / np.expand_dims(neighbourhood_mat.sum(axis=1),1)
-        # average_vec[~self.ave_mask] = 0
+        average_vec = neighbourhood_mat@self.t.active.orientation_vector / np.expand_dims(neighbourhood_mat.sum(axis=1),1)
+        average_vec[~self.ave_mask] = 0
         average_orientation = np.arctan2(average_vec[:,1],average_vec[:,0])
         mask_nan = np.isnan(average_orientation)
         average_orientation[mask_nan] = 0
         self.t.active.active_params["alpha_dir"][mask_nan] = 0
         return average_orientation
+    #
+    # def get_average_orientation(self):
+    #     ##couple instead to the instantaneous speeds of the neighbouring cells (rather than purely their active components).
+    #     ## weighted average of neighbouring velocities.
+    #     if self.x is None:
+    #         self.x = self.t.mesh.x
+    #     current_vec = self.t.mesh.x - self.x
+    #     # if (current_vec == 0).any(): ##set random if there was no movement.
+    #     #     current_vec[current_vec == 0] = np.random.random((current_vec == 0).sum())
+    #     # current_vec = current_vec / np.expand_dims(np.sqrt(current_vec[...,0]**2 + current_vec[...,1]**2),1)
+    #     #
+    #
+    #     neighbourhood_mat = self.t.mesh.l_int != 0
+    #     neighbourhood_mat = neighbourhood_mat.toarray() * np.outer(self.ave_mask,self.ave_mask)
+    #     average_vec = neighbourhood_mat@current_vec / np.expand_dims(neighbourhood_mat.sum(axis=1),1)
+    #     # average_vec[~self.ave_mask] = 0
+    #     average_orientation = np.arctan2(average_vec[:,1],average_vec[:,0])
+    #     mask_nan = np.isnan(average_orientation)
+    #     average_orientation[mask_nan] = 0
+    #     self.t.active.active_params["alpha_dir"][mask_nan] = 0
+    #     return average_orientation
 
     def update_grn(self, dt, dt_grn):
         """
@@ -131,7 +131,7 @@ class Grn_ave_couple_orientation:
                 self.t.active.active_params["angle0"] = np.random.uniform(0,np.pi*2,self.t.mesh.n_c)
         else:
             self.t.active.active_params["angle0"] = np.random.uniform(0, np.pi * 2, self.t.mesh.n_c)
-        self.x = self.t.mesh.x
+        self.x = self.t.mesh.x.copy()
 
     def update_grn_initialisation(self, dt, dt_grn):
         """
@@ -143,6 +143,7 @@ class Grn_ave_couple_orientation:
         """
         self.t.mesh.x[self.t.c_types == 3] = self.x0_bound
         self.x = self.t.mesh.x
+        self.t.active.active_params["angle0"] = np.random.uniform(0, np.pi * 2, self.t.mesh.n_c)
 
         # self.nvar = 2
         # self.var = np.zeros((self.t.mesh.n_c,2))

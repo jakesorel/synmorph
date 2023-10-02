@@ -15,7 +15,7 @@ mpl.rcParams["font.family"] = "sans-serif"
 mpl.rcParams["font.sans-serif"] = "Helvetica Neue"
 
 
-df = pd.read_csv("projects/ave/22072023_W01_AVEp0_VEp0/analysis_results/minimal.csv",header=None)
+df = pd.read_csv("projects/ave/01102023_W01_AVEp0_VEp0/analysis_results/minimal.csv",header=None)
 df.columns = "index,max_AVE_distance,percentile95_distance,t_95_distance,AVE_contiguous".split(",")
 df["index"] = df["index"].astype(int)
 df.index = df["index"]
@@ -49,10 +49,10 @@ E = ... + lambdaP*P*^2 - 2*lambdaP*P0*P
 
 
 N = 20
-lambda_P = 0.1
+lambda_P = 0.2
 W01_range = np.linspace(0, 0.1, N)
-AVE_p0_range = np.linspace(3.4, 5, N)
-VE_p0_range = np.linspace(3.4, 5, N)
+AVE_p0_range = np.linspace(3.4, 4.5, N)
+VE_p0_range = np.linspace(3.4, 4.5, N)
 Gamma_AVE_range = AVE_p0_range*2*lambda_P
 Gamma_VE_range = VE_p0_range*2*lambda_P
 
@@ -71,7 +71,7 @@ fig.subplots_adjust(bottom=0.3, top=0.8, left=0.3, right=0.8, wspace=0.7)
 cl = plt.colorbar(sm, ax=ax, pad=0.05, fraction=0.05, aspect=18, orientation="vertical")
 cl.set_label("Number of\nAVE clusters")
 fig.subplots_adjust(left=0.3,right=0.7,bottom=0.3,top=0.8)
-fig.savefig("projects/ave/22072023_W01_AVEp0_VEp0/plots/Diff add vs VEp0 AVE_clusters.pdf",dpi=300)
+fig.savefig("projects/ave/01102023_W01_AVEp0_VEp0/plots/Diff add vs VEp0 AVE_clusters.pdf",dpi=300)
 
 extent,aspect = make_extent(Gamma_AVE_range,Gamma_VE_range,xscale="linear",yscale="linear")
 fig, ax = plt.subplots(figsize=(5,5))
@@ -84,7 +84,7 @@ fig.subplots_adjust(bottom=0.3, top=0.8, left=0.3, right=0.8, wspace=0.7)
 cl = plt.colorbar(sm, ax=ax, pad=0.05, fraction=0.05, aspect=18, orientation="vertical")
 cl.set_label("AVE Displacement\n(Cell Diameters)")
 fig.subplots_adjust(left=0.3,right=0.7,bottom=0.3,top=0.8)
-fig.savefig("projects/ave/22072023_W01_AVEp0_VEp0/plots/p0s AVE displacement.pdf",dpi=300)
+fig.savefig("projects/ave/01102023_W01_AVEp0_VEp0/plots/p0s AVE displacement.pdf",dpi=300)
 
 
 extent,aspect = make_extent(W01_range,Gamma_VE_range,xscale="linear",yscale="linear")
@@ -100,7 +100,7 @@ fig.subplots_adjust(bottom=0.3, top=0.8, left=0.3, right=0.8, wspace=0.7)
 cl = plt.colorbar(sm, ax=ax, pad=0.05, fraction=0.05, aspect=18, orientation="vertical")
 cl.set_label("AVE Displacement\n(Cell Diameters)")
 fig.subplots_adjust(left=0.3,right=0.7,bottom=0.3,top=0.8)
-fig.savefig("projects/ave/22072023_W01_AVEp0_VEp0/plots/Diff add vs VEp0 AVE_disp.pdf",dpi=300)
+fig.savefig("projects/ave/01102023_W01_AVEp0_VEp0/plots/Diff add vs VEp0 AVE_disp.pdf",dpi=300)
 
 
 
@@ -132,7 +132,7 @@ cl.set_label("AVE Neighbour\nExchange Rate")
 
 fig.subplots_adjust(left=0.3,right=0.7,bottom=0.3,top=0.8)
 fig.show()
-fig.savefig("projects/ave/22072023_W01_AVEp0_VEp0/plots/p0s neighbour exchange rate.pdf")
+fig.savefig("projects/ave/01102023_W01_AVEp0_VEp0/plots/p0s neighbour exchange rate.pdf")
 
 def convert_contour_value(x_ex,y_ex,contour,N):
     x_eval = x_ex.min() + (x_ex.max()-x_ex.min())*contour[:,0]/N
@@ -175,7 +175,7 @@ ax.set(xlim=(Gamma_AVE_range.min(),Gamma_AVE_range.max()),ylim=(Gamma_AVE_range.
 ax.set(xlabel="AVE Line Tension\n"r"$\Gamma_{A}$",ylabel="VE Line Tension\n"r"$\Gamma_{V}$")
 fig.subplots_adjust(bottom=0.3, top=0.8, left=0.3, right=0.8, wspace=0.7)
 
-fig.savefig("projects/ave/22072023_W01_AVEp0_VEp0/plots/phase_diagram_solid_flock.pdf",dpi=300)
+fig.savefig("projects/ave/01102023_W01_AVEp0_VEp0/plots/phase_diagram_solid_flock.pdf",dpi=300)
 
 w,x,y,z = np.meshgrid(W01_range,Gamma_AVE_range,Gamma_VE_range,np.arange(20),indexing="ij")
 df_total = pd.DataFrame({"d":max_AVE_distance.ravel(),"t1":t1_AVE.ravel(),"N_clust":AVE_contiguous.ravel(),"w":w.ravel(),"Ap0":x.ravel(),"Vp0":y.ravel(),"seed":z.ravel()})
@@ -190,7 +190,7 @@ ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.legend().set_visible(False)
 ax.set(xlim=(Gamma_VE_range.min(),Gamma_VE_range.max()))
-fig.savefig("projects/ave/22072023_W01_AVEp0_VEp0/plots/t1 rate for phase diagram.pdf",dpi=300)
+fig.savefig("projects/ave/01102023_W01_AVEp0_VEp0/plots/t1 rate for phase diagram.pdf",dpi=300)
 
 fig, ax = plt.subplots(figsize=(5,2.5))
 fig.subplots_adjust(bottom=0.3, top=0.8, left=0.3, right=0.8, wspace=0.7)
@@ -200,7 +200,7 @@ ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.legend().set_visible(False)
 ax.set(xlim=(Gamma_VE_range.min(),Gamma_VE_range.max()),ylim=(0,4))
-fig.savefig("projects/ave/22072023_W01_AVEp0_VEp0/plots/d rate for phase diagram.pdf",dpi=300)
+fig.savefig("projects/ave/01102023_W01_AVEp0_VEp0/plots/d rate for phase diagram.pdf",dpi=300)
 
 
 fig, ax = plt.subplots(figsize=(2.5,2.5))
@@ -212,7 +212,7 @@ ax.spines['top'].set_visible(False)
 ax.spines['right'].set_visible(False)
 ax.legend().set_visible(False)
 ax.set(ylim=(0,None))
-fig.savefig("projects/ave/22072023_W01_AVEp0_VEp0/plots/N_clust for phase diagram.pdf",dpi=300)
+fig.savefig("projects/ave/01102023_W01_AVEp0_VEp0/plots/N_clust for phase diagram.pdf",dpi=300)
 
 
 
