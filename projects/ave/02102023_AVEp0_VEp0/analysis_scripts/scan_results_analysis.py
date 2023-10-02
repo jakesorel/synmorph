@@ -15,6 +15,22 @@ mpl.rcParams["font.family"] = "sans-serif"
 mpl.rcParams["font.sans-serif"] = "Helvetica Neue"
 
 
+df = pd.read_csv("projects/ave/02102023_AVEp0_VEp0/analysis_results/last.csv",header=None)
+df.index = [int(nm.split("_")[-2]) for nm in df[16]]
+df[16] = [int(nm.split(" ")[0]) for nm in df[16]]
+
+AVE_contiguous = np.ones((20,20,20)).ravel()*np.nan
+for i, n in zip(df.index,df[16]):
+    AVE_contiguous[i] = n
+AVE_contiguous = AVE_contiguous.reshape(20,20,20)
+
+AVE_d = np.ones((20,20,20)).ravel()*np.nan
+for i, n in zip(df.index,df[5]):
+    AVE_d[i] = n
+AVE_d = AVE_d.reshape(20,20,20)
+
+
+
 df = pd.read_csv("projects/ave/01102023_W01_AVEp0_VEp0/analysis_results/minimal.csv",header=None)
 df.columns = "index,max_AVE_distance,percentile95_distance,t_95_distance,AVE_contiguous".split(",")
 df["index"] = df["index"].astype(int)
