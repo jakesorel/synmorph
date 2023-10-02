@@ -278,7 +278,7 @@ if __name__ == "__main__":
                 print("Simulation completed in ", np.round(t_1-t_0),"s")
             else:
                 print("Simulation %d exists, skipping"%i)
-            run_analysis("02102023_AVEp0_VEp0_%d" % i)
+            # run_analysis("02102023_AVEp0_VEp0_%d" % i)
 
         # @exit_after(500)
         # def run_job_timed(i):
