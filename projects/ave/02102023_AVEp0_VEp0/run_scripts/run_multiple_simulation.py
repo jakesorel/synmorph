@@ -291,15 +291,16 @@ if __name__ == "__main__":
     #
 
     t_tot_0 = time.time()
-    Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
-    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
-    Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-    Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-    Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-    Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-    Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-    Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-    Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    try:
+        Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
+    except:
+        try:
+            Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
+        except:
+            try:
+                Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+            except:
+                Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
 
     Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_analysis_i)(i) for i in range_to_sample)
 
