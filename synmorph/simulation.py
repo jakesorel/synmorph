@@ -222,7 +222,17 @@ class Simulation:
             if not i % self.tskip:
                 ## for the saving time-points, copy over to x_save (and also var_save)
                 self.x_save[k] = self.t.mesh.x
-                self.tri_save[k] = self.t.mesh.tri
+                try:
+                    self.tri_save[k] = self.t.mesh.tri
+                except:
+                    print("k,i",k,i)
+                    print("previous_tri")
+                    print(self.tri_save[k-1])
+                    print("current tri")
+                    print(self.t.mesh.tri)
+                    print("shapes")
+                    print(self.tri_save[k-1].shape,self.t.mesh.tri.shape)
+                    self.tri_save[k] = self.t.mesh.tri
                 self.active_save[k] = self.t.active.aF
                 if grn:
                     self.var_save[k] = self.grn.var
