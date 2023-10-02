@@ -234,7 +234,7 @@ if __name__ == "__main__":
                            "c_type_proportions": (1.0, 0)}
             run_options = {"equiangulate": equiangulate,
                            "equi_nkill": 10}
-            simulation_params = {"dt": 0.05,
+            simulation_params = {"dt": 0.1,
                                  "tfin": 300,
                                  "tskip": 20,
                                  "dt_grn": 0.05,
@@ -289,33 +289,33 @@ if __name__ == "__main__":
     # def run_job_timed_no_equiangulate(i):
     #     return run_job(i,False)
     #
-
-    t_tot_0 = time.time()
-    try:
-        Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
-    except:
-        try:
-            Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
-        except:
-            try:
-                Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-            except:
-                Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
-
-    Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_analysis_i)(i) for i in range_to_sample)
-
-
     #
-    # for i in range_to_sample:
-    #     run_job(i,equiangulate=True)
-    #     # try:
-    #     #     run_job_timed(i)
-    #     # except:
-    #     #     print("Equiangulation timed out")
-    #     #     try:
-    #     #         run_job_timed_no_equiangulate(i)
-    #     #     except:
-    #     #         print("Forced triangulation timed out too.. giving up")
+    # t_tot_0 = time.time()
+    # try:
+    #     Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
+    # except:
+    #     try:
+    #         Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
+    #     except:
+    #         try:
+    #             Parallel(n_jobs=8,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    #         except:
+    #             Parallel(n_jobs=4,backend="loky", prefer="threads")(delayed(run_job)(i,False) for i in range_to_sample)
+    #
+    # Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_analysis_i)(i) for i in range_to_sample)
+    #
+
+
+    for i in range_to_sample:
+        run_job(i,equiangulate=True)
+        # try:
+        #     run_job_timed(i)
+        # except:
+        #     print("Equiangulation timed out")
+        #     try:
+        #         run_job_timed_no_equiangulate(i)
+        #     except:
+        #         print("Forced triangulation timed out too.. giving up")
 
     t_tot_1 = time.time()
     print("400 simulations completed in ",t_tot_0-t_tot_0,"s")
