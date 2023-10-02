@@ -196,7 +196,7 @@ if __name__ == "__main__":
 
                 AVE_p0_range = np.linspace(3.4, 4.5, N)
                 VE_p0_range = np.linspace(3.4, 4.5, N)
-                seed_range = 2023 + np.arange(N, dtype=int)
+                seed_range = 2023 + np.arange(M, dtype=int)
                 W01 = 0.0
                 AVE_p0 = AVE_p0_range[i1]
                 VE_p0 = VE_p0_range[i2]
