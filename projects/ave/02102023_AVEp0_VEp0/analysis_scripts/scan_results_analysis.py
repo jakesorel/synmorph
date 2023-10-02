@@ -20,15 +20,16 @@ df.columns = "index,max_AVE_distance,percentile95_distance,t_95_distance,AVE_con
 df["index"] = df["index"].astype(int)
 df.index = df["index"]
 df = df.sort_index()
-for i in range(8000):
-    if i not in df.index:
-        df[i] = np.repeat(np.nan,df.shape[1])
-print(df)
+# Create a new index with missing values from 0 to 7999
+new_index = pd.RangeIndex(8000)
 
-max_AVE_distance = df["max_AVE_distance"].values.reshape(20,20,20,20)
-t_95_distance = df["t_95_distance"].values.reshape(20,20,20,20)
+# Reindex the DataFrame, filling missing values with NaN
+df = df.reindex(new_index)
 
-AVE_contiguous = df["AVE_contiguous"].values.reshape(20,20,20,20)
+max_AVE_distance = df["max_AVE_distance"].values.reshape(20,20,20)
+t_95_distance = df["t_95_distance"].values.reshape(20,20,20)
+
+AVE_contiguous = df["AVE_contiguous"].values.reshape(20,20,20)
 
 AVE_is_contiguous = np.nanmean(AVE_contiguous,axis=-1)<1.5
 av_max_AVE_distance = np.nanmean(max_AVE_distance,axis=-1)
@@ -62,33 +63,32 @@ Gamma_VE_range = VE_p0_range*2*lambda_P
 x,y = np.meshgrid(AVE_p0_range,VE_p0_range)
 
 
-fig, ax = plt.subplots(figsize=(5,5))
-vmin=1
-vmax=5
-extent,aspect = make_extent(W01_range,Gamma_VE_range,xscale="linear",yscale="linear")
-ax.imshow(np.flip(np.nanmean(AVE_contiguous,axis=-1)[:,0].T,axis=0),interpolation="nearest",cmap="Reds_r",extent=extent,aspect=aspect,vmin=vmin,vmax=vmax)#,vmin=0,vmax=1)
-ax.set(xlabel="Differential Tension\n"r"$\Gamma_{A,V}$",ylabel="VE Line Tension\n"r"$\Gamma_{V}$")
-# ax.set_xticks([-3,-2,-1],labels=[r"$10^{%d}$"%i for i in [-3,-2,-1]])
-sm = plt.cm.ScalarMappable(cmap="Reds_r", norm=plt.Normalize(vmax=vmax,vmin=vmin))
-fig.subplots_adjust(bottom=0.3, top=0.8, left=0.3, right=0.8, wspace=0.7)
-cl = plt.colorbar(sm, ax=ax, pad=0.05, fraction=0.05, aspect=18, orientation="vertical")
-cl.set_label("Number of\nAVE clusters")
-fig.subplots_adjust(left=0.3,right=0.7,bottom=0.3,top=0.8)
-fig.savefig("projects/ave/01102023_W01_AVEp0_VEp0/plots/Diff add vs VEp0 AVE_clusters.pdf",dpi=300)
-
 extent,aspect = make_extent(Gamma_AVE_range,Gamma_VE_range,xscale="linear",yscale="linear")
 fig, ax = plt.subplots(figsize=(5,5))
 vmin=0
 vmax=4.0
-ax.imshow(np.flip(np.nanmean(max_AVE_distance,axis=-1)[-1].T,axis=0),interpolation="nearest",cmap="inferno",extent=extent,aspect=aspect,vmin=vmin,vmax=vmax)#,vmin=0,vmax=1)
+ax.imshow(np.flip(np.nanmean(max_AVE_distance,axis=-1).T,axis=0),interpolation="nearest",cmap="inferno",extent=extent,aspect=aspect,vmin=vmin,vmax=vmax)#,vmin=0,vmax=1)
 ax.set(xlabel="AVE Line Tension\n"r"$\Gamma_{A}$",ylabel="VE Line Tension\n"r"$\Gamma_{V}$")
 sm = plt.cm.ScalarMappable(cmap="inferno", norm=plt.Normalize(vmax=vmax,vmin=vmin))
 fig.subplots_adjust(bottom=0.3, top=0.8, left=0.3, right=0.8, wspace=0.7)
 cl = plt.colorbar(sm, ax=ax, pad=0.05, fraction=0.05, aspect=18, orientation="vertical")
 cl.set_label("AVE Displacement\n(Cell Diameters)")
 fig.subplots_adjust(left=0.3,right=0.7,bottom=0.3,top=0.8)
-fig.savefig("projects/ave/01102023_W01_AVEp0_VEp0/plots/p0s AVE displacement.pdf",dpi=300)
+fig.show()
 
+
+extent,aspect = make_extent(Gamma_AVE_range,Gamma_VE_range,xscale="linear",yscale="linear")
+fig, ax = plt.subplots(figsize=(5,5))
+vmin=0
+vmax=0.5
+ax.imshow(np.flip(np.nanmean((AVE_contiguous!=1)*AVE_contiguous/AVE_contiguous,axis=-1).T,axis=0),interpolation="nearest",cmap="inferno",extent=extent,aspect=aspect,vmin=vmin,vmax=vmax)#,vmin=0,vmax=1)
+ax.set(xlabel="AVE Line Tension\n"r"$\Gamma_{A}$",ylabel="VE Line Tension\n"r"$\Gamma_{V}$")
+sm = plt.cm.ScalarMappable(cmap="inferno", norm=plt.Normalize(vmax=vmax,vmin=vmin))
+fig.subplots_adjust(bottom=0.3, top=0.8, left=0.3, right=0.8, wspace=0.7)
+cl = plt.colorbar(sm, ax=ax, pad=0.05, fraction=0.05, aspect=18, orientation="vertical")
+cl.set_label("AVE Displacement\n(Cell Diameters)")
+fig.subplots_adjust(left=0.3,right=0.7,bottom=0.3,top=0.8)
+fig.show()
 
 
 extent,aspect = make_extent(Gamma_AVE_range,Gamma_VE_range,xscale="linear",yscale="linear")

@@ -86,7 +86,7 @@ grn_params = {"n_AVE_cells": 20,
               "exe_frac": 0.45,
               "AVE_p0": AVE_p0,
               "nonAVE_p0": VE_p0,
-              "ExEVE_p0": 3.4}
+              "ExEVE_p0": VE_p0}
 save_options = {"save": "hdf5",
                 "result_dir": "../scan_results",
                 "name": "AVE_example_full",
