@@ -32,11 +32,9 @@ if __name__ == "__main__":
     if not os.path.exists("../analysis_results/minimal"):
         os.mkdir("../analysis_results/minimal")
     N = 20
-    M = 20
-    total_sims = N ** 2 * M
-    sims_per_lot = 20
+    total_sims = N**4
+    sims_per_lot = 400
     slurm_index = int(sys.argv[1])
-    print("Slurm index", slurm_index)
-    range_to_sample = np.arange(slurm_index * sims_per_lot, (slurm_index + 1) * sims_per_lot)
+    range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
 
     results = np.array(Parallel(n_jobs=-1, backend="loky", prefer="threads")(delayed(extract_scores)(i) for i in range_to_sample))

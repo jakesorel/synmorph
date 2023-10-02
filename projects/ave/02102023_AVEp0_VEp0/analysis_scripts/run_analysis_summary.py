@@ -11,7 +11,7 @@ from joblib import Parallel,delayed
 
 def extract_scores(i):
     try:
-        df = pd.read_csv('../analysis_results/all/01102023_W01_AVEp0_VEp0_%i_analysis.csv'%i)
+        df = pd.read_csv('../analysis_results/all/02102023_W01_AVEp0_VEp0_%i_analysis.csv'%i)
         d = df["av_av_AVE_d"].values
         max_AVE_distance = d.max()
         percentile95_distance = np.percentile(d,95)
@@ -32,9 +32,11 @@ if __name__ == "__main__":
     if not os.path.exists("../analysis_results/minimal"):
         os.mkdir("../analysis_results/minimal")
     N = 20
-    total_sims = N**4
-    sims_per_lot = 400
+    M = 20
+    total_sims = N ** 2 * M
+    sims_per_lot = 20
     slurm_index = int(sys.argv[1])
-    range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
+    print("Slurm index", slurm_index)
+    range_to_sample = np.arange(slurm_index * sims_per_lot, (slurm_index + 1) * sims_per_lot)
 
     results = np.array(Parallel(n_jobs=-1, backend="loky", prefer="threads")(delayed(extract_scores)(i) for i in range_to_sample))
