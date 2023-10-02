@@ -165,7 +165,7 @@ def run_analysis(sim_name):
 if __name__ == "__main__":
     try:
 
-        base_name = "01102023_AVEp0_VEp0"
+        base_name = "02102023_AVEp0_VEp0"
 
         if not os.path.exists("../scan_summary/%s_full_summary.csv" % base_name):
             with open("../scan_summary/%s_full_summary.csv" % base_name, "w+") as g:
