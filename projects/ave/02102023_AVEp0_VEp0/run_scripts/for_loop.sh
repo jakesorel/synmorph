@@ -10,5 +10,5 @@
 #SBATCH --partition=cpu                                                                                                                                                            
 #SBATCH --mem=100M
 
-sbatch --array [0-199] --output=../bash_out/output_%A_%a.out --error=../bash_out/error_%A_%a.out run_simulation.sh ${SLURM_ARRAY_TASK_ID}
+sbatch --array [0-399] --output=../bash_out/output_%A_%a.out --error=../bash_out/error_%A_%a.out run_simulation.sh ${SLURM_ARRAY_TASK_ID}
 
