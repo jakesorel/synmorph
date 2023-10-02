@@ -316,6 +316,8 @@ if __name__ == "__main__":
         #         run_job_timed_no_equiangulate(i)
         #     except:
         #         print("Forced triangulation timed out too.. giving up")
+    Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_analysis_i)(i) for i in range_to_sample)
+
 
     t_tot_1 = time.time()
     print("400 simulations completed in ",t_tot_0-t_tot_0,"s")
