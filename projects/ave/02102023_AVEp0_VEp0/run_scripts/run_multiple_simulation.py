@@ -320,7 +320,6 @@ if __name__ == "__main__":
 
 
     t_tot_1 = time.time()
-    print("400 simulations completed in ",t_tot_0-t_tot_0,"s")
 
 
 """

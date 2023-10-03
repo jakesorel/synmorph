@@ -59,6 +59,10 @@ AVE_p0_range = np.linspace(3.4, 4.5, N)
 VE_p0_range = np.linspace(3.4, 4.5, N)
 Gamma_AVE_range = np.flip(-AVE_p0_range*2*lambda_P)
 Gamma_VE_range = np.flip(-VE_p0_range*2*lambda_P)
+####
+#THIS NEEDS TO BE RESCALED AGAIN BC OF THE A0 RESCALING IN THE MODEL
+####
+
 
 x,y = np.meshgrid(AVE_p0_range,VE_p0_range)
 

@@ -8,6 +8,9 @@ import synmorph.analysis.topological as top
 from synmorph import sim_plotting as plot
 import synmorph.tri_functions as trf
 from scipy.sparse import coo_matrix
+from joblib import Parallel, delayed
+
+import os
 """
 How many free params:
 
@@ -47,7 +50,7 @@ It seems like the velocity needs to be not too high such that the AVE stalls.
 
 W01 = 0.1
 AVE_p0 = 3.5
-VE_p0 = 4.1
+VE_p0 = 4.2
 AVE_v0 = 0.05
 lambda_P = 0.2
 seed = 2023
@@ -86,7 +89,7 @@ grn_params = {"n_AVE_cells": 20,
               "exe_frac": 0.45,
               "AVE_p0": AVE_p0,
               "nonAVE_p0": VE_p0,
-              "ExEVE_p0": VE_p0}
+              "ExEVE_p0": AVE_p0}
 save_options = {"save": "hdf5",
                 "result_dir": "../scan_results",
                 "name": "AVE_example_full",
@@ -121,16 +124,24 @@ sim.animate_c_types(n_frames=15,
                     file_name="three tissue")
 #
 
-i_range = np.arange(0,360,360/6).astype(int)
+i_range = np.arange(0,258,3).astype(int)
 
-for j, i in enumerate([0]+list(i_range)):
+def save_fig(i,dir):
     fig, ax = plt.subplots(figsize=(4,4))
 
     plot.plot_vor(ax,sim.x_save[i].astype(np.float32),sim.t.tissue_params["L"],cols=plot.generate_ctype_cols(sim.t.c_types,c_type_col_map=["#399cc3", "#e4e4e4","#cbcccc","white"]))
-    fig.savefig("results/dynamics 3 tissue_%d.pdf"%j,dpi=300)
+    fig.savefig(dir + "/%d.png"%i,dpi=600)
 
+save_dir_name = "results/3.5-4.1-4.1"
+if not os.path.exists(save_dir_name):
+    os.mkdir(save_dir_name)
 
-
+for i in i_range:
+    save_fig(i, save_dir_name)
+    plt.close("all")
+#
+# Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(save_fig)(i,"results/animation") for i in i_range)
+# plt.close("all")
 
 def get_total_t1s():
     tri_save = sim.tri_save

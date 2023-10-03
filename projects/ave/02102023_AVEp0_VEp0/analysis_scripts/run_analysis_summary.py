@@ -32,7 +32,7 @@ if __name__ == "__main__":
     if not os.path.exists("../analysis_results/minimal"):
         os.mkdir("../analysis_results/minimal")
     N = 20
-    M = 20
+    M = 100
     total_sims = N ** 2 * M
     sims_per_lot = 20
     slurm_index = int(sys.argv[1])
