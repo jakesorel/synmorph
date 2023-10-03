@@ -21,15 +21,17 @@ df["index"] = df["index"].astype(int)
 df.index = df["index"]
 df = df.sort_index()
 # Create a new index with missing values from 0 to 7999
-new_index = pd.RangeIndex(8000)
+new_index = pd.RangeIndex(40000)
 
 # Reindex the DataFrame, filling missing values with NaN
 df = df.reindex(new_index)
 
-max_AVE_distance = df["max_AVE_distance"].values.reshape(20,20,20)
-t_95_distance = df["t_95_distance"].values.reshape(20,20,20)
+max_AVE_distance = df["max_AVE_distance"].values.reshape(20,20,100)
+# t_95_distance = df["t_95_distance"].values.reshape(20,20,100)
+max_AVE_distance = max_AVE_distance[:18,:18]
 
-AVE_contiguous = df["AVE_contiguous"].values.reshape(20,20,20)
+AVE_contiguous = df["AVE_contiguous"].values.reshape(20,20,100)
+AVE_contiguous = AVE_contiguous[:18,:18]
 
 AVE_is_contiguous = np.nanmean(AVE_contiguous,axis=-1)<1.5
 av_max_AVE_distance = np.nanmean(max_AVE_distance,axis=-1)
@@ -58,7 +60,9 @@ W01_range = np.linspace(0, 0.1, N)
 AVE_p0_range = np.linspace(3.4, 4.5, N)
 VE_p0_range = np.linspace(3.4, 4.5, N)
 Gamma_AVE_range = np.flip(-AVE_p0_range*2*lambda_P)
+Gamma_AVE_range = Gamma_AVE_range[:18]
 Gamma_VE_range = np.flip(-VE_p0_range*2*lambda_P)
+Gamma_VE_range = Gamma_VE_range[:18]
 ####
 #THIS NEEDS TO BE RESCALED AGAIN BC OF THE A0 RESCALING IN THE MODEL
 ####
@@ -86,7 +90,7 @@ fig, ax = plt.subplots(figsize=(5,5))
 vmin=0
 vmax=0.3
 im = np.flip(np.nanmean((AVE_contiguous!=1)*AVE_contiguous/AVE_contiguous,axis=-1).T,axis=1)
-im[np.isnan(im)] = 0
+# im[np.isnan(im)] = 0
 ax.imshow(im,interpolation="nearest",cmap="Reds",extent=extent,aspect=aspect,vmin=vmin,vmax=vmax)#,vmin=0,vmax=1)
 ax.set(xlabel="AVE Line Tension\n"r"$\Gamma_{A}$",ylabel="VE Line Tension\n"r"$\Gamma_{V}$")
 sm = plt.cm.ScalarMappable(cmap="Reds", norm=plt.Normalize(vmax=vmax,vmin=vmin))
@@ -100,10 +104,10 @@ fig.show()
 extent,aspect = make_extent(Gamma_AVE_range,Gamma_VE_range,xscale="linear",yscale="linear")
 fig, ax = plt.subplots(figsize=(5,5))
 vmin=1
-vmax=2
-ax.imshow(np.flip(np.nanmean(AVE_contiguous,axis=-1)[0].T,axis=0),interpolation="nearest",cmap="inferno",extent=extent,aspect=aspect,vmin=vmin,vmax=vmax)#,vmin=0,vmax=1)
+vmax=np.flip(np.nanmean(AVE_contiguous,axis=-1).T,axis=1).max()
+ax.imshow(np.flip(np.nanmean(AVE_contiguous,axis=-1).T,axis=1),interpolation="nearest",cmap="Reds",extent=extent,aspect=aspect,vmin=vmin,vmax=vmax)#,vmin=0,vmax=1)
 ax.set(xlabel="AVE Line Tension\n"r"$\Gamma_{A}$",ylabel="VE Line Tension\n"r"$\Gamma_{V}$")
-sm = plt.cm.ScalarMappable(cmap="inferno", norm=plt.Normalize(vmax=vmax,vmin=vmin))
+sm = plt.cm.ScalarMappable(cmap="Reds", norm=plt.Normalize(vmax=vmax,vmin=vmin))
 fig.subplots_adjust(bottom=0.3, top=0.8, left=0.3, right=0.8, wspace=0.7)
 cl = plt.colorbar(sm, ax=ax, pad=0.05, fraction=0.05, aspect=18, orientation="vertical")
 cl.set_label("AVE Clusters")
