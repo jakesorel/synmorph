@@ -34,7 +34,7 @@ if __name__ == "__main__":
     N = 20
     M = 100
     total_sims = N ** 2 * M
-    sims_per_lot = 20
+    sims_per_lot = 100
     slurm_index = int(sys.argv[1])
     print("Slurm index", slurm_index)
     range_to_sample = np.arange(slurm_index * sims_per_lot, (slurm_index + 1) * sims_per_lot)

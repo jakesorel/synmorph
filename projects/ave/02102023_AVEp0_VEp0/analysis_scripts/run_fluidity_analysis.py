@@ -113,13 +113,14 @@ if __name__ == "__main__":
         os.mkdir("../analysis_results")
 
     N = 20
-    total_sims = N**3
-    sims_per_lot = 400
+    M = 100
+    total_sims = N**2 * M
+    sims_per_lot = M
     slurm_index = int(sys.argv[1])
     range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
 
     def run_analysis_all(i):
-        sim_name = "01102023_W01_AVEp0_VEp0_%d" % i
+        sim_name = "02102023_AVEp0_VEp0_%d" % i
 
         run(sim_name)
 

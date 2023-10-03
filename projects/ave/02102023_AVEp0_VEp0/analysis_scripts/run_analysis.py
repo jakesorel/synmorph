@@ -129,10 +129,16 @@ if __name__ == "__main__":
     range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
 
     def run_analysis_all(i):
+
         sim_name = "02102023_AVEp0_VEp0_%d" % i
+        if not os.path.exists("../analysis_results/all/%s_analysis.csv"%sim_name)
 
 
-        run_analysis(sim_name)
+            run_analysis(sim_name)
+        else:
+            print(sim_name,"exists")
 
-    Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_analysis_all)(i) for i in range_to_sample)
+    for i in range_to_sample:
+        run_analysis_all(i)
+    # Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_analysis_all)(i) for i in range_to_sample)
 
