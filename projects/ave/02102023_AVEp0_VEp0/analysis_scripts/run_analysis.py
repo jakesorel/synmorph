@@ -133,8 +133,10 @@ if __name__ == "__main__":
         sim_name = "02102023_AVEp0_VEp0_%d" % i
         if not os.path.exists("../analysis_results/all/%s_analysis.csv"%sim_name):
 
-
-            run_analysis(sim_name)
+            try:
+                run_analysis(sim_name)
+            except:
+                print("file doesn't exist, skipping")
         else:
             print(sim_name,"exists")
 
