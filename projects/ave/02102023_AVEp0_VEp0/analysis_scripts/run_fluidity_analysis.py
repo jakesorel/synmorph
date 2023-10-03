@@ -122,7 +122,10 @@ if __name__ == "__main__":
     def run_analysis_all(i):
         sim_name = "02102023_AVEp0_VEp0_%d" % i
         if not os.path.exists("../analysis_results/fluidity/%s.csv"%sim_name):
-            run(sim_name)
+            try:
+                run(sim_name)
+            except:
+                print("file not found, skipping")
 
     Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_analysis_all)(i) for i in range_to_sample)
 
