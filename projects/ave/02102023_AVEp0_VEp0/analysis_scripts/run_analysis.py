@@ -131,7 +131,7 @@ if __name__ == "__main__":
     def run_analysis_all(i):
 
         sim_name = "02102023_AVEp0_VEp0_%d" % i
-        if not os.path.exists("../analysis_results/all/%s_analysis.csv"%sim_name)
+        if not os.path.exists("../analysis_results/all/%s_analysis.csv"%sim_name):
 
 
             run_analysis(sim_name)
