@@ -51,7 +51,7 @@ lambda_P = 0.2
 W01 = 0.0
 
 
-tissue_params = {"L": 18,
+tissue_params = {"L": 17.0,
                  "A0": 1,
                  "P0": 3.6,
                  "kappa_A": 1,

@@ -36,7 +36,7 @@ AVE-EPI
 
 """
 
-W01 = 0.1
+W01 = 0.0
 AVE_p0 = 3.4
 VE_p0 = 3.4
 AVE_v0 = 0.05
@@ -44,7 +44,7 @@ lambda_P = 0.2
 seed = 2023
 
 
-tissue_params = {"L": 16.8,
+tissue_params = {"L": 17.0,
                  "A0": 1.,
                  "P0": 3.2,
                  "kappa_A": 1.,
@@ -59,8 +59,8 @@ init_params = {"init_noise": 0.1,
                "c_type_proportions": (1.0, 0)}
 run_options = {"equiangulate": True,
                "equi_nkill": 10}
-simulation_params = {"dt": 0.1,
-                     "tfin": 600,
+simulation_params = {"dt": 0.05,
+                     "tfin": 300,
                      "tskip": 10,
                      "dt_grn": 0.025,
                      "grn_sim": "grn_ave_couple_orientation",
@@ -100,9 +100,28 @@ sim.simulate(progress_bar=True)
 
 sim.animate_c_types(n_frames=15,
                     c_type_col_map=["#4bdb71", "#ffbb4d","#ffbb4d","white"],
-                    file_name="AVEp0 = 3.9 VEp0 = 3.9 W01 = 0.1")
+                    file_name="AVEp0 = 3.4 VEp0 = 3.4")
 #
+# #
+
+
+i_range = np.arange(0,500,5).astype(int)
+
+def save_fig(i,dir):
+    fig, ax = plt.subplots(figsize=(3,3))
+
+    plot.plot_vor(ax,sim.x_save[i].astype(np.float32),sim.t.tissue_params["L"],cols=plot.generate_ctype_cols(sim.t.c_types,c_type_col_map=["#399cc3", "#e4e4e4","#cbcccc","white"]))
+    fig.savefig(dir + "/%d.png"%i,dpi=600)
+
+save_dir_name = "results/4.2-4.2"
+if not os.path.exists(save_dir_name):
+    os.mkdir(save_dir_name)
+
+for i in i_range:
+    save_fig(i, save_dir_name)
+    plt.close("all")
 #
+
 # fig, ax = plt.subplots()
 pos = spatial.displacements(sim.x_save.astype(np.float32),sim.t.mesh.L) + sim.x_save[0]
 # tmax = 800
@@ -441,8 +460,8 @@ y_bins = np.linspace(0, L,10)
 
 xx, yy = np.meshgrid(x_bins, y_bins)
 
-tmin = 0
-tmax = 50
+tmin = 175
+tmax = tmin+50
 
 ret_x = binned_statistic_2d(pos_tm1[tmin:tmax,:,0].ravel(),pos_tm1[tmin:tmax,:,1].ravel(), velocity[tmin:tmax,:,0].ravel(), statistic=np.nanmean, bins=[x_bins, y_bins])
 ret_y = binned_statistic_2d(pos_tm1[tmin:tmax,:,0].ravel(),pos_tm1[tmin:tmax,:,1].ravel(), velocity[tmin:tmax,:,1].ravel(), statistic=np.nanmean, bins=[x_bins, y_bins])
@@ -466,7 +485,7 @@ alpha = 0.6
 stream.lines.set_alpha(alpha)
 stream.arrows.set_alpha(alpha)
 
-plot.plot_vor(ax,sim.x_save[25].astype(np.float32),sim.t.tissue_params["L"],cols=plot.generate_ctype_cols(sim.t.c_types,c_type_col_map=["#399cc3", "lightgrey","lightgrey","white"]))
+plot.plot_vor(ax,sim.x_save[int(tmax/2+tmin/2)].astype(np.float32),sim.t.tissue_params["L"],cols=plot.generate_ctype_cols(sim.t.c_types,c_type_col_map=["#399cc3", "lightgrey","lightgrey","white"]))
 
 # ax.quiver(xx,yy,ret_x.statistic,ret_y.statistic)
 ax.axis("off")

@@ -71,9 +71,9 @@ init_params = {"init_noise": 0.1,
                "c_type_proportions": (1.0, 0)}
 run_options = {"equiangulate": True,
                "equi_nkill": 10}
-simulation_params = {"dt": 0.25,
+simulation_params = {"dt": 0.05,
                      "tfin": 900,
-                     "tskip": 10,
+                     "tskip": 50,
                      "dt_grn": 0.025,
                      "grn_sim": "grn_ave_couple_orientation",
                      "tinit": 10,
@@ -88,8 +88,8 @@ grn_params = {"n_AVE_cells": 20,
               "AVE_A0": 0.54,
               "exe_frac": 0.45,
               "AVE_p0": AVE_p0,
-              "nonAVE_p0": VE_p0,
-              "ExEVE_p0": AVE_p0}
+              "nonAVE_p0": 4.1,
+              "ExEVE_p0": 4.1}
 save_options = {"save": "hdf5",
                 "result_dir": "../scan_results",
                 "name": "AVE_example_full",
@@ -122,7 +122,7 @@ sim.simulate(progress_bar=True)
 sim.animate_c_types(n_frames=15,
                     c_type_col_map=["#4bdb71", "#ffbb4d","green","white"],
                     file_name="three tissue")
-#
+
 
 i_range = np.arange(0,258,3).astype(int)
 
