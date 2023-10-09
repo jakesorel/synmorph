@@ -68,13 +68,12 @@ if __name__ == "__main__":
     def run_simulation_plotting(i):
         sim_name = "02102023_AVEp0_VEp0_%d" % i
         if not os.path.exists("../analysis_results/plots/%d" % i):
-            if not os.path.exists("../analysis_results/plots/%d" % i):
-                os.mkdir("../analysis_results/plots/%d" % i)
+            os.mkdir("../analysis_results/plots/%d" % i)
 
-            # try:
-            plot_simulation(sim_name,i)
-            # except:
-            #     print("file not found, skipping")
+        # try:
+        plot_simulation(sim_name,i)
+        # except:
+        #     print("file not found, skipping")
 
     for corner in corners:
         range_to_sample = np.array([np.ravel_multi_index((corner[0],corner[1],i),(20,20,100)) for i in range(100)])
