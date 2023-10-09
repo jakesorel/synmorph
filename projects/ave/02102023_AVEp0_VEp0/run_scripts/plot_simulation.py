@@ -56,7 +56,6 @@ if __name__ == "__main__":
     M = 100
     total_sims = N**2 * M
     sims_per_lot = M
-    slurm_index = int(sys.argv[1])
     corners = np.array(((4,4),
                         (4,14),
                         (14,4),
