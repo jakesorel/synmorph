@@ -17,6 +17,7 @@ from joblib import Parallel, delayed
 import os
 
 def plot_simulation(sim_name,i):
+    print(sim_name)
     pikd = open("../scan_dicts/%s.pickle" % sim_name, 'rb')
     scan_dict = pickle.load(pikd)
     pikd.close()
@@ -32,7 +33,7 @@ def plot_simulation(sim_name,i):
     c_types = np.array(sim_dict["c_types"], dtype=np.int32)
 
     i_range = np.arange(0,len(tri_save),int(len(tri_save)/100)).astype(int)
-
+    print("i_range",i_range)
     def save_fig(i,dir):
         fig, ax = plt.subplots(figsize=(3,3))
 
