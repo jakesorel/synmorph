@@ -48,7 +48,7 @@ def plot_simulation(sim_name,i):
     tri_save = np.array(sim_dict["tri_save"], dtype=np.int32)
     c_types = np.array(sim_dict["c_types"], dtype=np.int32)
 
-    i_range = np.arange(0,len(tri_save),int(len(tri_save)/100)).astype(int)
+    i_range = np.arange(0,len(tri_save),np.ceil(len(tri_save)/100)).astype(int)
     print("i_range",i_range)
     def save_fig(i,dir):
         fig, ax = plt.subplots(figsize=(3,3))
