@@ -43,10 +43,11 @@ def plot_simulation(sim_name,i):
     if not os.path.exists(save_dir_name):
         os.mkdir(save_dir_name)
 
+    print("starting plotting")
     for j in i_range:
         save_fig(j, save_dir_name)
         plt.close("all")
-
+    print("finished %d"%i)
 
 if __name__ == "__main__":
     if not os.path.exists("../analysis_results/plots"):
