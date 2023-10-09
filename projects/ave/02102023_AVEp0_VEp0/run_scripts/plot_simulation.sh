@@ -9,7 +9,7 @@
 #SBATCH --cpus-per-task=12
 #SBATCH --output=../bash_out/plot_sim_output.out
 #SBATCH --error=../bash_out/plot_sim_error.out
-#SBATCH --mem=128G
+#SBATCH --mem=800G
 
 eval "$(conda shell.bash hook)"
 source activate synmorph
