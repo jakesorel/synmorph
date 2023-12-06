@@ -392,7 +392,7 @@ def normalise(x):
     return (x - x.min()) / (x.max() - x.min())
 
 
-def hexagonal_lattice(_rows=3, _cols=3, noise=0.0005, _A=None):
+def hexagonal_lattice(_rows=3, _cols=3, noise=0.0005, A=None):
     """
     Assemble a hexagonal lattice
     :param rows: Number of rows in lattice
@@ -400,11 +400,11 @@ def hexagonal_lattice(_rows=3, _cols=3, noise=0.0005, _A=None):
     :param noise: Noise added to cell locs (Gaussian SD)
     :return: points (nc x 2) cell coordinates.
     """
-    if _A is None:
-        _A = 1.
-    A = np.max(_A)
-    rows = int(np.round(_rows/np.sqrt(A)))
-    cols = int(np.round(_cols/np.sqrt(A)))
+    if A is None:
+        A = 1.
+    _A = np.max(A)
+    rows = int(np.round(_rows/np.sqrt(_A)))
+    cols = int(np.round(_cols/np.sqrt(_A)))
     points = []
     for row in range(rows * 2):
         for col in range(cols):
@@ -415,7 +415,7 @@ def hexagonal_lattice(_rows=3, _cols=3, noise=0.0005, _A=None):
             points.append((x, y))
     points = np.asarray(points)
     if A is not None:
-        points = points * np.sqrt(2 * np.sqrt(3) / 3) * np.sqrt(A)
+        points = points * np.sqrt(2 * np.sqrt(3) / 3) * np.sqrt(_A)
     return points
 
 
