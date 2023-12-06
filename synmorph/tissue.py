@@ -32,7 +32,7 @@ class Tissue:
             assert init_params is not None, "Specify init params"
             assert run_options is not None, "Specify run options"
 
-            self.tissue_params = tissue_params
+            self.tissue_params = tissue_params.copy()
 
             self.init_params = init_params
             self.mesh = None
