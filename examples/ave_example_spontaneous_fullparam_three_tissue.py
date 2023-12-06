@@ -48,7 +48,7 @@ It seems like the velocity needs to be not too high such that the AVE stalls.
 """
 
 
-W01 = 0.1
+W01 = 0
 AVE_p0 = 3.5
 VE_p0 = 4.2
 AVE_v0 = 0.05
@@ -71,9 +71,9 @@ init_params = {"init_noise": 0.1,
                "c_type_proportions": (1.0, 0)}
 run_options = {"equiangulate": True,
                "equi_nkill": 10}
-simulation_params = {"dt": 0.05,
+simulation_params = {"dt": 0.1,
                      "tfin": 900,
-                     "tskip": 50,
+                     "tskip": 25,
                      "dt_grn": 0.025,
                      "grn_sim": "grn_ave_couple_orientation",
                      "tinit": 10,
@@ -88,8 +88,8 @@ grn_params = {"n_AVE_cells": 20,
               "AVE_A0": 0.54,
               "exe_frac": 0.45,
               "AVE_p0": AVE_p0,
-              "nonAVE_p0": 4.1,
-              "ExEVE_p0": 4.1}
+              "nonAVE_p0": 4.2,
+              "ExEVE_p0": 3.5}
 save_options = {"save": "hdf5",
                 "result_dir": "../scan_results",
                 "name": "AVE_example_full",
@@ -121,18 +121,18 @@ sim.simulate(progress_bar=True)
 
 sim.animate_c_types(n_frames=15,
                     c_type_col_map=["#4bdb71", "#ffbb4d","green","white"],
-                    file_name="three tissue")
+                    file_name="three tissue 4-2-3.5")
 
 
-i_range = np.arange(0,258,3).astype(int)
+i_range = np.arange(0,360,3).astype(int)
 
 def save_fig(i,dir):
     fig, ax = plt.subplots(figsize=(4,4))
 
-    plot.plot_vor(ax,sim.x_save[i].astype(np.float32),sim.t.tissue_params["L"],cols=plot.generate_ctype_cols(sim.t.c_types,c_type_col_map=["#399cc3", "#e4e4e4","#cbcccc","white"]))
+    plot.plot_vor(ax,sim.x_save[i].astype(np.float32),sim.t.tissue_params["L"],cols=plot.generate_ctype_cols(sim.t.c_types,c_type_col_map=["#399cc3", "#e4e4e4","#e4e4e4","white"]))#"#399cc3", "#e4e4e4","#cbcccc","white"
     fig.savefig(dir + "/%d.png"%i,dpi=600)
 
-save_dir_name = "results/3.5-4.1-4.1"
+save_dir_name = "results/3.5-4.2-4.2_new_uniformcols"
 if not os.path.exists(save_dir_name):
     os.mkdir(save_dir_name)
 
