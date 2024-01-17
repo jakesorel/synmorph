@@ -185,7 +185,7 @@ if __name__ == "__main__":
         Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
 
         t_tot_1 = time.time()
-        print("98 simulations completed in ",t_tot_0-t_tot_0,"s")
+        print("144 simulations completed in ",t_tot_0-t_tot_0,"s")
         sys.exit(0)
 
     except TerminatedWorkerError:
