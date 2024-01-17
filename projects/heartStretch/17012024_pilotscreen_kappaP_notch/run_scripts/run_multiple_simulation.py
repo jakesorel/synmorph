@@ -164,17 +164,32 @@ if __name__ == "__main__":
                 path_name = "../scan_dicts/%s" % scan_dict_name + ".pickle"
 
                 t0 = time.time()
-                sim = run_simulation(path_name)
-                t_1 = time.time()
+                try:
+                    sim = run_simulation(path_name)
+                    t_1 = time.time()
 
-                L_fin = sim.grn.L_save[-1]
-                L_min = sim.grn.L_save.min()
-                L_pre = sim.grn.L_save[50]
+                    L_fin = sim.grn.L_save[-1]
+                    L_min = sim.grn.L_save.min()
+                    L_pre = sim.grn.L_save[50]
 
 
-                file = open("../scan_summary/L/%d.txt"%counter,"w+")
-                file.write("%d,%.3f,%.3f,%.3f\n"%(counter,L_fin,L_min,L_pre))
-                file.close()
+                    file = open("../scan_summary/L/%d.txt"%counter,"w+")
+                    file.write("%d,%.3f,%.3f,%.3f\n"%(counter,L_fin,L_min,L_pre))
+                    file.close()
+                except:
+                    try:
+                        sim = run_simulation(path_name)
+                        t_1 = time.time()
+
+                        L_fin = sim.grn.L_save[-1]
+                        L_min = sim.grn.L_save.min()
+                        L_pre = sim.grn.L_save[50]
+
+                        file = open("../scan_summary/L/%d.txt" % counter, "w+")
+                        file.write("%d,%.3f,%.3f,%.3f\n" % (counter, L_fin, L_min, L_pre))
+                        file.close()
+                    except:
+                        print("ERROR!")
 
                 print("Simulation completed in ", np.round(t_1-t_0),"s")
             else:
