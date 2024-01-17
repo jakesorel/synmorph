@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
         def run_job(i,equiangulate=True):
             t_0 = time.time()
-            if not os.path.exists("../scan_results/22072023_W01_AVEp0_VEp0_%d_simulation.h5.gz"%i):
+            if not os.path.exists("../scan_results/%s_%d_simulation.h5.gz"%(base_name,i)):
                 print("Simulating %d" % i)
                 [i1, i2, i3,i4, j] = np.unravel_index(i, (N_notch,N_kappa,N_kappa,N_P0,N_seed))
                 counter = i
