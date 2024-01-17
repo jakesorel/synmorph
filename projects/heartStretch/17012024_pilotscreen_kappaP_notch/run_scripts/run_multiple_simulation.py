@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
         base_name = "17012024_pilotscreen_kappaP_notch"
 
-        N_notch,N_kappa,N_P0,N_seed = 6,12,4,10
+        N_notch,N_kappa,N_P0,N_seed = 12,12,4,10
 
         total_sims = N_notch * N_seed * N_kappa**2 * N_P0
         sims_per_lot = 144
@@ -93,9 +93,9 @@ if __name__ == "__main__":
                 print("Simulating %d" % i)
                 [i1, i2, i3,i4, j] = np.unravel_index(i, (N_notch,N_kappa,N_kappa,N_P0,N_seed))
                 counter = i
-                pnotch_range = np.linspace(0, 1, N_notch*2)[:N_notch]
-                kappa_P_P_range = np.logspace(-2,0, N_kappa)
-                kappa_P_N_range = np.logspace(-2,0, N_kappa)
+                pnotch_range = np.linspace(0, 1, N_notch)
+                kappa_P_P_range = np.linspace(0.05,2, N_kappa)
+                kappa_P_N_range = np.linspace(0.05,2, N_kappa)
                 P0_range = np.linspace(3.5,4.2, N_P0)
 
                 seed_range = 2024 + np.arange(N_seed, dtype=int)
