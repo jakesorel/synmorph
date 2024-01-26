@@ -176,22 +176,12 @@ if __name__ == "__main__":
 
                     path_name = "../scan_dicts/%s" % scan_dict_name + ".pickle"
 
-                    try:
-                        sim = run_simulation(path_name,i2,i3,i1)
+                    sim = run_simulation(path_name,i2,i3,i1)
 
-                        file = open("../scan_summary/L/%d.txt"%counter,"w+")
-                        file.write(str(counter)+","+",".join(np.round(sim.var_save[:,0,0],3).astype(str).tolist()))
-                        file.close()
-                    except:
-                        try:
-                            sim = run_simulation(path_name, i2, i3, i1)
+                    file = open("../scan_summary/L/%d.txt"%counter,"w+")
+                    file.write(str(counter)+","+",".join(np.round(sim.var_save[:,0,0],3).astype(str).tolist()))
+                    file.close()
 
-                            file = open("../scan_summary/L/%d.txt" % counter, "w+")
-                            file.write(
-                                str(counter) + "," + ",".join(np.round(sim.var_save[:, 0, 0], 3).astype(str).tolist()))
-                            file.close()
-                        except:
-                            print("ERROR!")
 
             else:
                 print("Simulation %d exists, skipping"%i)
