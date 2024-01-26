@@ -7,7 +7,7 @@
 #SBATCH -n 1
 #SBATCH --partition=cpu
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=2G
+#SBATCH --mem=8G
 
 
 eval "$(conda shell.bash hook)"
