@@ -210,7 +210,10 @@ if __name__ == "__main__":
     t_tot_0 = time.time()
     # Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
     for i in range_to_sample:
-        run_job(i,True)
+        try:
+            run_job(i,True)
+        except:
+            print("run crashed, skipping")
     t_tot_1 = time.time()
     print("simulations completed in ",t_tot_0-t_tot_0,"s")
     sys.exit(0)
