@@ -16,7 +16,7 @@ from joblib.externals.loky.process_executor import TerminatedWorkerError
 from multiprocessing import cpu_count
 import threading
 import h5py, gzip
-
+from synmorph.utils import *
 try:
     import thread
 except ImportError:
@@ -71,9 +71,21 @@ def run_simulation(path_name,p_notch_idx,seed_idx,set_idx):
     sim.grn.is_notch = is_notch.astype(bool)
     sim.simulate(progress_bar=False)
 
-    with gzip.open(scan_dict["save_options"]["name"] + "_simulation.h5.gz", 'a') as gz_file:
-        with h5py.File(gz_file, 'a') as hf:
-            hf.create_dataset('L_save', data=sim.var_save[:,0,0].tolist())
+    skeleton_dict = {"c_types": sim.t.c_types,
+                     "x_save": sim.x_save,
+                     "tri_save": sim.tri_save}
+
+    skeleton_dict["x_save"] = convert_to_unsigned_int(np.array(skeleton_dict["x_save"]), sim.t.mesh.L)
+    skeleton_dict["tri_save"] = np.array(skeleton_dict["tri_save"]).astype(np.uint16)
+    skeleton_dict["c_types"] = np.array(skeleton_dict["c_types"]).astype(np.uint8)
+    skeleton_dict["L_save"] = np.array(sim.var_save[:,0,0])
+
+    file_path = sim.save_dir_pickled + "/" + sim.name + "_simulation" + '.h5'
+
+    f = h5py.File(file_path, 'w')
+    for i, key in enumerate(skeleton_dict.keys()):
+        f.create_dataset(key, data=skeleton_dict[key], compression="gzip")
+    f.close()
 
     return sim
 
@@ -138,7 +150,7 @@ if __name__ == "__main__":
                                      "tskip": 10,
                                      "dt_grn": 0.05,
                                      "grn_sim": "heart_stretch"}
-                save_options = {"save": "hdf5",
+                save_options = {"save": "None",
                                 "result_dir": "../scan_results",
                                 "name": scan_dict_name,
                                 "compressed": True}
