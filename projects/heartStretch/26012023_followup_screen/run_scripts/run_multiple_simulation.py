@@ -53,7 +53,7 @@ def mkdir(path):
 
 def run_simulation(path_name,p_notch_idx,seed_idx,set_idx):
     x = np.load("../scan_initialisation/x_%d.npz"%seed_idx)["arr_0"]
-    is_notch = np.load("../scan_initialisation/is_notch_%d.npz"%seed_idx)["arr_0"][set_idx][p_notch_idx]
+    is_notch = np.load("../scan_initialisation/is_notch_%d.npz"%seed_idx)["arr_0"][p_notch_idx][set_idx]
 
     pikd = open(path_name, 'rb')
     scan_dict = pickle.load(pikd)
@@ -99,12 +99,12 @@ def run_simulation(path_name,p_notch_idx,seed_idx,set_idx):
 if __name__ == "__main__":
     base_name = "26012023_followup_screen"
 
-    N_set, N_notch, N_seed, N_kappaA,N_kappa = 10, 10, 10, 10, 10
+    N_set, N_notch, N_seed, N_kappaA,N_kappa = 6, 10, 10, 6, 10
 
-    total_sims_true = N_notch * N_seed * N_kappa * (N_kappa + 1) / 2 * N_kappaA
-    total_sims = N_notch * N_seed * N_kappa * N_kappa * N_kappaA
+    total_sims_true = ((N_notch-2) * N_set + 2) * N_kappa * (N_kappa + 1) / 2 * N_kappaA * N_seed
+    total_sims = N_notch * N_seed * N_kappa * N_kappa * N_kappaA * N_set
 
-    sims_per_lot = 500
+    sims_per_lot = 720
     slurm_index = int(sys.argv[1])
     print("Slurm index", slurm_index)
     range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
@@ -121,82 +121,84 @@ if __name__ == "__main__":
             print("Simulating %d" % i)
             [i1,i2,i3,i4,i5,i6] = np.unravel_index(i, (N_set, N_notch, N_seed, N_kappaA,N_kappa,N_kappa))
             counter = i
-            if i6 >= i5:
-                pnotch_range = np.linspace(0, 1, N_notch)
-                kappa_P_P_range = np.logspace(-1.5,0.3, N_kappa)
-                kappa_P_N_range = np.logspace(-1.5,0.3, N_kappa)
-                kappa_A_range = np.logspace(-1.5,0.3, N_kappaA)
+            if (i2 > 0) + (i1==0): ##don't repeat simulations for config when there's no Notch+ cells
+                if (i2 != N_notch) + (i1 == 0):##don't repeat simulations for config when it's all Notch+ cells
+                    if i6 >= i5: ##Don't do simulations when kappa_N < kappa_P
+                        pnotch_range = np.linspace(0, 1, N_notch)
+                        kappa_P_P_range = np.logspace(-1.5,0.3, N_kappa)
+                        kappa_P_N_range = np.logspace(-1.5,0.3, N_kappa)
+                        kappa_A_range = np.logspace(-1.5,0.3, N_kappaA)
 
-                p_notch = pnotch_range[i2]
-                kappa_P_P = kappa_P_P_range[i5]
-                kappa_P_N = kappa_P_N_range[i6]
-                kappa_A = kappa_A_range[i4]
+                        p_notch = pnotch_range[i2]
+                        kappa_P_P = kappa_P_P_range[i5]
+                        kappa_P_N = kappa_P_N_range[i6]
+                        kappa_A = kappa_A_range[i4]
 
 
-                scan_dict_name = base_name + "_" + "%s" % counter
-                # df_entry = np.array([counter, W01, AVE_p0, VE_p0, seed, scan_dict_name])
-                n_cell = 250
+                        scan_dict_name = base_name + "_" + "%s" % counter
+                        # df_entry = np.array([counter, W01, AVE_p0, VE_p0, seed, scan_dict_name])
+                        n_cell = 250
 
-                tissue_params = {"L": 1.0,
-                                 "A0": 1 / n_cell,
-                                 "P0": 3.81,
-                                 "kappa_A": 1,
-                                 "kappa_P": 0.1,
-                                 "W": np.array(((0, 0.0), (0.0, 0))).astype(np.float32),
-                                 "a": 0.,
-                                 "k": 0.}
-                active_params = {"v0": 0.,
-                                 "Dr": 1e-1}
-                init_params = {"init_noise": 0.2,
-                               "c_type_proportions": (1.0, 0.0)}
-                run_options = {"equiangulate": True,
-                               "equi_nkill": 10}
-                simulation_params = {"dt": 0.025,
-                                     "tfin": 220,
-                                     "tskip": 10,
-                                     "dt_grn": 0.05,
-                                     "grn_sim": "heart_stretch"}
-                save_options = {"save": "None",
-                                "result_dir": "../scan_results",
-                                "name": scan_dict_name,
-                                "compressed": True}
-                grn_params = {"p_notch": 0.5,
-                              "L_init": np.sqrt(n_cell),
-                              "L_min": 1.0,
-                              "kappa_A_P": kappa_A,
-                              "kappa_A_N": kappa_A,
-                              "kappa_P_P": kappa_P_P,
-                              "kappa_P_N": kappa_P_N,
-                              "A0_P": 1.0,
-                              "A0_N": 1.0,
-                              "P0_P": 3.75,
-                              "P0_N": 3.75,
-                              "init_pressure": 0.0,
-                              "fin_pressure": 0.15,
-                              "pressure_start_time": 30.0,
-                              "pressure_slope": 0.2,
-                              "mu_L": 0.01,
-                              "n_t": int(simulation_params["tfin"] / simulation_params["dt"]),
-                              "notch_distribution": "random",
-                              "osc_level": 1,
-                              "heart_period": 80}
+                        tissue_params = {"L": 1.0,
+                                         "A0": 1 / n_cell,
+                                         "P0": 3.81,
+                                         "kappa_A": 1,
+                                         "kappa_P": 0.1,
+                                         "W": np.array(((0, 0.0), (0.0, 0))).astype(np.float32),
+                                         "a": 0.,
+                                         "k": 0.}
+                        active_params = {"v0": 0.,
+                                         "Dr": 1e-1}
+                        init_params = {"init_noise": 0.2,
+                                       "c_type_proportions": (1.0, 0.0)}
+                        run_options = {"equiangulate": True,
+                                       "equi_nkill": 10}
+                        simulation_params = {"dt": 0.025,
+                                             "tfin": 220,
+                                             "tskip": 10,
+                                             "dt_grn": 0.05,
+                                             "grn_sim": "heart_stretch"}
+                        save_options = {"save": "None",
+                                        "result_dir": "../scan_results",
+                                        "name": scan_dict_name,
+                                        "compressed": True}
+                        grn_params = {"p_notch": 0.5,
+                                      "L_init": np.sqrt(n_cell),
+                                      "L_min": 1.0,
+                                      "kappa_A_P": kappa_A,
+                                      "kappa_A_N": kappa_A,
+                                      "kappa_P_P": kappa_P_P,
+                                      "kappa_P_N": kappa_P_N,
+                                      "A0_P": 1.0,
+                                      "A0_N": 1.0,
+                                      "P0_P": 3.75,
+                                      "P0_N": 3.75,
+                                      "init_pressure": 0.0,
+                                      "fin_pressure": 0.15,
+                                      "pressure_start_time": 30.0,
+                                      "pressure_slope": 0.2,
+                                      "mu_L": 0.01,
+                                      "n_t": int(simulation_params["tfin"] / simulation_params["dt"]),
+                                      "notch_distribution": "random",
+                                      "osc_level": 1,
+                                      "heart_period": 80}
 
-                scan_dict = {"tissue_params": tissue_params, "active_params": active_params, "init_params": init_params,
-                             "run_options": run_options, "simulation_params": simulation_params, "grn_params": grn_params,
-                             "save_options": save_options}
+                        scan_dict = {"tissue_params": tissue_params, "active_params": active_params, "init_params": init_params,
+                                     "run_options": run_options, "simulation_params": simulation_params, "grn_params": grn_params,
+                                     "save_options": save_options}
 
-                pikd = open("../scan_dicts/%s" % scan_dict_name + ".pickle", 'wb')
-                pickle.dump(scan_dict, pikd)
-                pikd.close()
-                print(counter)
+                        pikd = open("../scan_dicts/%s" % scan_dict_name + ".pickle", 'wb')
+                        pickle.dump(scan_dict, pikd)
+                        pikd.close()
+                        print(counter)
 
-                path_name = "../scan_dicts/%s" % scan_dict_name + ".pickle"
+                        path_name = "../scan_dicts/%s" % scan_dict_name + ".pickle"
 
-                sim = run_simulation(path_name,i2,i3,i1)
+                        sim = run_simulation(path_name,i2,i3,i1)
 
-                file = open("../scan_summary/L/%d.txt"%counter,"w+")
-                file.write(str(counter)+","+",".join(np.round(sim.var_save[:,0,0],3).astype(str).tolist()))
-                file.close()
+                        file = open("../scan_summary/L/%d.txt"%counter,"w+")
+                        file.write(str(counter)+","+",".join(np.round(sim.var_save[:,0,0],3).astype(str).tolist()))
+                        file.close()
 
 
         else:

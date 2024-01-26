@@ -133,7 +133,7 @@ class Mesh:
         V = trf.circumcenter(self.tx, self.L)
         return V
     #
-    def _triangulate(self):
+    def _triangulate(self,max_d=None):
         """
         Calculates the periodic triangulation on the set of points x.
 
@@ -156,10 +156,11 @@ class Mesh:
         #   and the rest are translations
 
         if type(self.A) is np.ndarray:
-            maxA = np.max(self.A)
-            max_d = np.sqrt(maxA/np.pi)*5 ##2.5 cell diameters on average
-            if not max_d > self.L/50:
-                max_d = self.L
+            if max_d is None:
+                maxA = np.max(self.A)
+                max_d = np.sqrt(maxA/np.pi)*5 ##2.5 cell diameters on average
+                if not max_d > self.L/50:
+                    max_d = self.L
         else:
             max_d = self.L
 
@@ -198,75 +199,31 @@ class Mesh:
         self.n_v = n_tri.shape[0]
         self.tri = n_tri
         self.neigh = trf.get_neighbours(n_tri)
-    #
-    #
-    # def _triangulate(self):
-    #     """
-    #     Calculates the periodic triangulation on the set of points x.
-    #
-    #     Stores:
-    #         self.n_v = number of vertices (int32)
-    #         self.tri = triangulation of the vertices (nv x 3) matrix.
-    #             Cells are stored in CCW order. As a convention, the first entry has the smallest cell id
-    #             (Which entry comes first is, in and of itself, arbitrary, but is utilised elsewhere)
-    #         self.vs = coordinates of each vertex; (nv x 2) matrix
-    #         self.neigh = vertex ids (i.e. rows of self.vs) corresponding to the 3 neighbours of a given vertex (nv x 3).
-    #             In CCW order, where vertex i {i=0..2} is opposite cell i in the corresponding row of self.tri
-    #         self.neighbours = coordinates of each neighbouring vertex (nv x 3 x 2) matrix
-    #
-    #     :param x: (nc x 2) matrix with the coordinates of each cell
-    #     """
-    #
-    #
-    #     # 1. Tile cell positions 9-fold to perform the periodic triangulation
-    #     #   Calculates y from x. y is (9nc x 2) matrix, where the first (nc x 2) are the "true" cell positions,
-    #     #   and the rest are translations
-    #     y = trf.make_y(self.x, self.L * self.grid_xy)
-    #
-    #     # 2. Perform the triangulation on y
-    #     #   The **triangle** package (tr) returns a dictionary, containing the triangulation.
-    #     #   This triangulation is extracted and saved as tri
-    #     t = tr.triangulate({"vertices": y})
-    #
-    #     tri = t["triangles"]
-    #
-    #     # Del = Delaunay(y)
-    #     # tri = Del.simplices
-    #     n_c = self.x.shape[0]
-    #
-    #     # 3. Find triangles with **at least one** cell within the "true" frame (i.e. with **at least one** "normal cell")
-    #     #   (Ignore entries with -1, a quirk of the **triangle** package, which denotes boundary triangles
-    #     #   Generate a mask -- one_in -- that considers such triangles
-    #     #   Save the new triangulation by applying the mask -- new_tri
-    #     tri = tri[(tri != -1).all(axis=1)]
-    #     one_in = (tri < n_c).any(axis=1)
-    #     new_tri = tri[one_in]
-    #
-    #     # 4. Remove repeats in new_tri
-    #     #   new_tri contains repeats of the same cells, i.e. in cases where triangles straddle a boundary
-    #     #   Use remove_repeats function to remove these. Repeats are flagged up as entries with the same trio of
-    #     #   cell ids, which are transformed by the mod function to account for periodicity. See function for more details
-    #
-    #     n_tri = trf.remove_repeats(new_tri, n_c)
-    #
-    #     # tri_same = (self.tri == n_tri).all()
-    #
-    #     # 6. Store outputs
-    #     self.n_v = n_tri.shape[0]
-    #     self.tri = n_tri
-    #     self.neigh = trf.get_neighbours(n_tri)
-    #
 
     def triangulate(self):
-        if type(self.k2s) is list or not self.run_options["equiangulate"]:
-            self._triangulate()
+        def do_tr(max_d=None):
+            self._triangulate(max_d)
             self.k2s = get_k2(self.tri, self.neigh)
+            if self.tri.shape[0]!=self.n_c*2:
+                self._triangulate(max_d=self.L)
+                self.k2s = get_k2(self.tri, self.neigh)
+                if self.tri.shape[0] != self.n_c * 2:
+                    ##Nudge x by a small amount in case of degeneracies
+                    self.x+= np.random.random(0,1e-8,self.x.shape,dtype=np.float32)
+                    self.x = np.mod(self.x,self.L)
+                    self._triangulate(max_d=self.L)
+                    self.k2s = get_k2(self.tri, self.neigh)
+
+        if type(self.k2s) is list or not self.run_options["equiangulate"]:
+            do_tr()
+            assert self.tri.shape[0]==self.n_c*2, "Regular triangulation spurious"
         else:
             tri, neigh, k2s, failed = re_triangulate(self.x, self.tri, self.neigh, self.k2s, self.tx, self.L, self.n_v,
                                                      self.vs, max_runs=self.run_options["equi_nkill"])
+            failed = failed + (self.tri.shape[0]!=self.n_c*2)
             if failed:
-                self._triangulate()
-                self.k2s = get_k2(self.tri, self.neigh)
+                do_tr()
+                assert self.tri.shape[0] == self.n_c * 2, "Regular triangulation spurious, after attempted equiangulation"
             else:
                 self.tri, self.neigh, self.k2s = tri, neigh, k2s
 

@@ -58,9 +58,8 @@ def perform_swap(E,is_notch,n_c,T,tri,trip1):
 if __name__ == "__main__":
     base_name = "26012023_followup_screen"
 
-    N_set,N_notch,N_seed,N_kappa,N_kappaA = 10,10,10,10,10
+    N_set,N_notch,N_seed = 6,10,10
 
-    total_sims = N_notch * N_seed * N_kappa*(N_kappa+1)/2 * N_kappaA
     pnotch_range = np.linspace(0, 1, N_notch)
     seed_range = np.arange(10)
     init_space = np.meshgrid(pnotch_range,seed_range,indexing="ij")
