@@ -67,8 +67,8 @@ def run_simulation(path_name,p_notch_idx,seed_idx,set_idx):
                         grn_params=scan_dict["grn_params"],
                         run_options=scan_dict["run_options"],
                         save_options=scan_dict["save_options"])
-    sim.t.mesh.x = x
-    sim.grn.is_notch = is_notch
+    sim.t.mesh.x = x.astype(np.int32)
+    sim.grn.is_notch = is_notch.astype(bool)
     sim.simulate(progress_bar=False)
 
     with gzip.open(scan_dict["save_options"]["name"] + "_simulation.h5.gz", 'a') as gz_file:
