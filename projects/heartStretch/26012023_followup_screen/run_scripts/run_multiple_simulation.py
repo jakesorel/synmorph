@@ -176,10 +176,8 @@ if __name__ == "__main__":
 
                     path_name = "../scan_dicts/%s" % scan_dict_name + ".pickle"
 
-                    t0 = time.time()
                     try:
                         sim = run_simulation(path_name,i2,i3,i1)
-                        t_1 = time.time()
 
                         file = open("../scan_summary/L/%d.txt"%counter,"w+")
                         file.write(str(counter)+","+",".join(np.round(sim.var_save[:,0,0],3).astype(str).tolist()))
@@ -187,7 +185,6 @@ if __name__ == "__main__":
                     except:
                         try:
                             sim = run_simulation(path_name, i2, i3, i1)
-                            t_1 = time.time()
 
                             file = open("../scan_summary/L/%d.txt" % counter, "w+")
                             file.write(
@@ -196,14 +193,12 @@ if __name__ == "__main__":
                         except:
                             print("ERROR!")
 
-                    print("Simulation completed in ", np.round(t_1-t_0),"s")
             else:
                 print("Simulation %d exists, skipping"%i)
 
 
         t_tot_0 = time.time()
         Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
-
         t_tot_1 = time.time()
         print("simulations completed in ",t_tot_0-t_tot_0,"s")
         sys.exit(0)
