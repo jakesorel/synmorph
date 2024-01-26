@@ -94,7 +94,7 @@ if __name__ == "__main__":
                              "tskip": 10,
                              "dt_grn": 0.05,
                              "grn_sim": "heart_stretch"}
-        save_options = {"save": "skeleton",
+        save_options = {"save": "None",
                         "result_dir": "results",
                         "name": "heart_stretch",
                         "compressed": True}
