@@ -209,7 +209,7 @@ class Mesh:
                 self.k2s = get_k2(self.tri, self.neigh)
                 if self.tri.shape[0] != self.n_c * 2:
                     ##Nudge x by a small amount in case of degeneracies
-                    self.x+= np.random.random(0,1e-8,self.x.shape,dtype=np.float32)
+                    self.x+= np.random.normal(0,1e-8,self.x.shape,dtype=np.float32)
                     self.x = np.mod(self.x,self.L)
                     self._triangulate(max_d=self.L)
                     self.k2s = get_k2(self.tri, self.neigh)

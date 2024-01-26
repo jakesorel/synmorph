@@ -205,6 +205,8 @@ if __name__ == "__main__":
             print("Simulation %d exists, skipping"%i)
 
 
+
+    np.random.shuffle(range_to_sample)
     t_tot_0 = time.time()
     Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
     t_tot_1 = time.time()
