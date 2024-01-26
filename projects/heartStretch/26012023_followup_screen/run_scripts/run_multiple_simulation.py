@@ -87,6 +87,12 @@ def run_simulation(path_name,p_notch_idx,seed_idx,set_idx):
         f.create_dataset(key, data=skeleton_dict[key], compression="gzip")
     f.close()
 
+    with open(file_path, 'rb') as f_in:
+        with gzip.open(file_path + ".gz", 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+    os.remove(file_path)
+
     return sim
 
 
