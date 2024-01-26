@@ -43,10 +43,27 @@ class Heart_stretch:
         self.set_renormalised_params()
         self.update_pressure()
 
+
     def set_notch(self):
         self.is_notch = np.zeros(self.t.mesh.n_c, dtype=bool)
         self.is_notch[:int(np.round(self.params["p_notch"] * self.t.mesh.n_c))] = True
-        np.random.shuffle(self.is_notch)
+        if "notch_distribution" in self.params:
+            if self.params["notch_distribution"] == "circular":
+                self.is_notch = np.zeros(self.t.mesh.n_c, dtype=bool)
+                centre = np.array((self.t.mesh.L / 2, self.t.mesh.L / 2))
+                n_positive = np.zeros(100,dtype=int)
+                masks = []
+                for i, r in enumerate(np.linspace(0,self.t.mesh.L,100)):
+                    x = self.t.mesh.x
+                    mask = (x[:, 0] - centre[0]) ** 2 + (x[:, 1] - centre[1]) ** 2 <= r **2
+                    masks.append(mask)
+                    n_positive[i] = mask.sum()
+                if np.any(n_positive < (self.params["p_notch"] * self.t.mesh.n_c)):
+                    self.is_notch = masks[np.where(n_positive < self.params["p_notch"] * self.t.mesh.n_c)[0][-1]]
+            else:
+                np.random.shuffle(self.is_notch)
+        else:
+            np.random.shuffle(self.is_notch)
 
     def set_true_params(self):
         self.true_tissue_params["A0"] = np.ones(self.t.mesh.n_c, dtype=np.float32)*self.params["A0_N"]
@@ -65,7 +82,9 @@ class Heart_stretch:
         self.t.kappa_A[:] = self.true_tissue_params["kappa_A"] * self.L_true**2 ##normalised by 1/L to acc for adj. damping coef.
 
     def update_pressure(self):
-        norm_pressure = 0.5*(1+np.tanh((self.time_point-self.params["pressure_start_time"])*self.params["pressure_slope"]))
+        # norm_pressure = 0.5*(1+np.tanh((self.time_point-self.params["pressure_start_time"])*self.params["pressure_slope"]))
+        norm_pressure = 0.5*(1+np.tanh((self.time_point-self.params["pressure_start_time"])*self.params["pressure_slope"]))*(1+self.params["osc_level"]*np.sin((self.time_point)*np.pi*2/(self.params["heart_period"])))/(1+self.params["osc_level"])
+
         self.pressure = self.params["init_pressure"] + (self.params["fin_pressure"]-self.params["init_pressure"])*norm_pressure
 
     def update_grn(self, dt, dt_grn):

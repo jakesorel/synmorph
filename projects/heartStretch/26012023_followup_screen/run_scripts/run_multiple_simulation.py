@@ -51,7 +51,10 @@ def mkdir(path):
         os.mkdir(path)
 
 
-def run_simulation(path_name):
+def run_simulation(path_name,p_notch_idx,seed_idx,set_idx):
+    x = np.load("../scan_initialisation/x_%d.npz"%seed_idx)["arr_0"]
+    is_notch = np.load("../scan_initialisation/is_notch_%d.npz"%seed_idx)["arr_0"][set_idx][p_notch_idx]
+
     pikd = open(path_name, 'rb')
     scan_dict = pickle.load(pikd)
     pikd.close()
@@ -64,8 +67,9 @@ def run_simulation(path_name):
                         grn_params=scan_dict["grn_params"],
                         run_options=scan_dict["run_options"],
                         save_options=scan_dict["save_options"])
-
-    sim.simulate(progress_bar=True)
+    sim.t.mesh.x = x
+    sim.t.grn.is_notch = is_notch
+    sim.simulate(progress_bar=False)
 
     with gzip.open(scan_dict["save_options"]["name"] + "_simulation.h5.gz", 'a') as gz_file:
         with h5py.File(gz_file, 'a') as hf:
@@ -77,12 +81,14 @@ def run_simulation(path_name):
 if __name__ == "__main__":
     try:
 
-        base_name = "17012024_pilotscreen_kappaP_notch"
+        base_name = "26012023_followup_screen"
 
-        N_notch,N_kappa,N_P0,N_seed = 12,12,4,10
+        N_set, N_notch, N_seed, N_kappaA,N_kappa = 10, 10, 10, 10, 10
 
-        total_sims = N_notch * N_seed * N_kappa**2 * N_P0
-        sims_per_lot = 144
+        total_sims_true = N_notch * N_seed * N_kappa * (N_kappa + 1) / 2 * N_kappaA
+        total_sims = N_notch * N_seed * N_kappa * N_kappa * N_kappaA
+
+        sims_per_lot = 500
         slurm_index = int(sys.argv[1])
         print("Slurm index", slurm_index)
         range_to_sample = np.arange(slurm_index*sims_per_lot,(slurm_index+1)*sims_per_lot)
@@ -97,26 +103,26 @@ if __name__ == "__main__":
             t_0 = time.time()
             if not os.path.exists("../scan_results/%s_%d_simulation.h5.gz"%(base_name,i)):
                 print("Simulating %d" % i)
-                [i1, i2, i3,i4, j] = np.unravel_index(i, (N_notch,N_kappa,N_kappa,N_P0,N_seed))
+                [i1,i2,i3,i4,i5,i6] = np.unravel_index(i, (N_set, N_notch, N_seed, N_kappaA,N_kappa,N_kappa))
                 counter = i
+                if i6 >= i5:
                 pnotch_range = np.linspace(0, 1, N_notch)
-                kappa_P_P_range = np.linspace(0.05,2, N_kappa)
-                kappa_P_N_range = np.linspace(0.05,2, N_kappa)
-                P0_range = np.linspace(3.5,4.2, N_P0)
+                kappa_P_P_range = np.logspace(-1.5,0.3, N_kappa)
+                kappa_P_N_range = np.logspace(-1.5,0.3, N_kappa)
+                kappa_A_range = np.logspace(-1.5,0.3, N_kappaA)
 
-                seed_range = 2024 + np.arange(N_seed, dtype=int)
-                p_notch = pnotch_range[i1]
-                kappa_P_P = kappa_P_P_range[i2]
-                kappa_P_N = kappa_P_N_range[i3]
-                P0 = P0_range[i4]
+                p_notch = pnotch_range[i2]
+                kappa_P_P = kappa_P_P_range[i5]
+                kappa_P_N = kappa_P_N_range[i6]
+                kappa_A = kappa_A_range[i4]
 
-                seed = seed_range[j] ###NOTE, SEED IS NOT USED SO TRUE RANDOM INSTEAD
 
                 scan_dict_name = base_name + "_" + "%s" % counter
                 # df_entry = np.array([counter, W01, AVE_p0, VE_p0, seed, scan_dict_name])
+                n_cell = 250
 
                 tissue_params = {"L": 1.0,
-                                 "A0": 0.00797, ##nb this is just shorthand to force the
+                                 "A0": 1 / n_cell,
                                  "P0": 3.81,
                                  "kappa_A": 1,
                                  "kappa_P": 0.1,
@@ -125,12 +131,12 @@ if __name__ == "__main__":
                                  "k": 0.}
                 active_params = {"v0": 0.,
                                  "Dr": 1e-1}
-                init_params = {"init_noise": 0.1,
+                init_params = {"init_noise": 0.2,
                                "c_type_proportions": (1.0, 0.0)}
                 run_options = {"equiangulate": True,
                                "equi_nkill": 10}
-                simulation_params = {"dt": 0.05,
-                                     "tfin": 100,
+                simulation_params = {"dt": 0.025,
+                                     "tfin": 220,
                                      "tskip": 10,
                                      "dt_grn": 0.05,
                                      "grn_sim": "heart_stretch"}
@@ -138,25 +144,26 @@ if __name__ == "__main__":
                                 "result_dir": "../scan_results",
                                 "name": scan_dict_name,
                                 "compressed": True}
-                grn_params = {"p_notch": p_notch,
-                              "L_init": 10.0,
+                grn_params = {"p_notch": 0.5,
+                              "L_init": np.sqrt(n_cell),
                               "L_min": 1.0,
-                              "kappa_A_P": 0.1,
-                              "kappa_A_N": 0.1,
+                              "kappa_A_P": kappa_A,
+                              "kappa_A_N": kappa_A,
                               "kappa_P_P": kappa_P_P,
                               "kappa_P_N": kappa_P_N,
                               "A0_P": 1.0,
                               "A0_N": 1.0,
-                              "P0_P": P0,
-                              "P0_N": P0,
+                              "P0_P": 3.75,
+                              "P0_N": 3.75,
                               "init_pressure": 0.0,
-                              "fin_pressure": 0.2,
+                              "fin_pressure": 0.15,
                               "pressure_start_time": 30.0,
                               "pressure_slope": 0.2,
-                              "mu_L": 0.02,
-                              "n_t": int(simulation_params["tfin"] / simulation_params["dt"])
-                              }
-
+                              "mu_L": 0.01,
+                              "n_t": int(simulation_params["tfin"] / simulation_params["dt"]),
+                              "notch_distribution": "random",
+                              "osc_level": 1,
+                              "heart_period": 80}
 
                 scan_dict = {"tissue_params": tissue_params, "active_params": active_params, "init_params": init_params,
                              "run_options": run_options, "simulation_params": simulation_params, "grn_params": grn_params,
@@ -171,28 +178,20 @@ if __name__ == "__main__":
 
                 t0 = time.time()
                 try:
-                    sim = run_simulation(path_name)
+                    sim = run_simulation(path_name,i2,i3,i1)
                     t_1 = time.time()
 
-                    L_fin = sim.grn.L_save[-1]
-                    L_min = sim.grn.L_save.min()
-                    L_pre = sim.grn.L_save[500]
-
-
                     file = open("../scan_summary/L/%d.txt"%counter,"w+")
-                    file.write("%d,%.3f,%.3f,%.3f\n"%(counter,L_fin,L_min,L_pre))
+                    file.write(str(counter)+","+",".join(np.round(sim.var_save[:,0,0],3).astype(str).tolist()))
                     file.close()
                 except:
                     try:
-                        sim = run_simulation(path_name)
+                        sim = run_simulation(path_name, i2, i3, i1)
                         t_1 = time.time()
 
-                        L_fin = sim.grn.L_save[-1]
-                        L_min = sim.grn.L_save.min()
-                        L_pre = sim.grn.L_save[50]
-
                         file = open("../scan_summary/L/%d.txt" % counter, "w+")
-                        file.write("%d,%.3f,%.3f,%.3f\n" % (counter, L_fin, L_min, L_pre))
+                        file.write(
+                            str(counter) + "," + ",".join(np.round(sim.var_save[:, 0, 0], 3).astype(str).tolist()))
                         file.close()
                     except:
                         print("ERROR!")
@@ -206,7 +205,7 @@ if __name__ == "__main__":
         Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
 
         t_tot_1 = time.time()
-        print("144 simulations completed in ",t_tot_0-t_tot_0,"s")
+        print("simulations completed in ",t_tot_0-t_tot_0,"s")
         sys.exit(0)
 
     except TerminatedWorkerError:
