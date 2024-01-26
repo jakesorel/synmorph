@@ -7,8 +7,8 @@
 #SBATCH --output=../bash_out/for_loop_2nd_jobs_output.out
 #SBATCH --error=../bash_out/for_loop_2nd_jobs_error.out
 #SBATCH -n 1
-#SBATCH --partition=gpu
-#SBATCH --gres=gpu:2
+#SBATCH --partition=cpu
+#SBATCH --cpus-per-task=1
 #SBATCH --mem=32G
 
 
