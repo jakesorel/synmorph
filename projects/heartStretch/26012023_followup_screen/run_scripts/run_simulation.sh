@@ -5,9 +5,9 @@
 #SBATCH --time=23:59:00   # walltime
 #SBATCH -J "heart_simulations"   # job name
 #SBATCH -n 1
-#SBATCH --partition=cpu
+#SBATCH --partition=hmem
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=32G
+#SBATCH --mem=500G
 
 
 eval "$(conda shell.bash hook)"
