@@ -141,35 +141,42 @@ if __name__ == "__main__":
             is_notch[:int(np.round(p_notch * n_c))] = True
             np.random.shuffle(is_notch)
 
+            if (p_notch > 0)*(p_notch < 1):
 
 
-            E0 = get_frac_boundary(is_notch,tri,trip1)
-            E = E0
-            n_iter = 100000
-            E_save_min = np.zeros(n_iter)
-            is_notchs_min = np.zeros((n_iter,len(is_notch)),dtype=bool)
-            for i in range(n_iter):
-                E,is_notch = perform_swap(E,is_notch,n_c,0.001,tri,trip1)
-                E_save_min[i] = E
-                is_notchs_min[i] = is_notch.copy()
+                E0 = get_frac_boundary(is_notch,tri,trip1)
+                E = E0
+                n_iter = 100000
+                E_save_min = np.zeros(n_iter)
+                is_notchs_min = np.zeros((n_iter,len(is_notch)),dtype=bool)
+                for i in range(n_iter):
+                    E,is_notch = perform_swap(E,is_notch,n_c,0.001,tri,trip1)
+                    E_save_min[i] = E
+                    is_notchs_min[i] = is_notch.copy()
 
-            E0 = get_frac_boundary(is_notch,tri,trip1)
-            E = E0
-            n_iter = 100000
-            E_save_max = np.zeros(n_iter)
-            is_notchs_max = np.zeros((n_iter,len(is_notch)),dtype=bool)
-            for i in range(n_iter):
-                E,is_notch = perform_swap(E,is_notch,n_c,-0.001,tri,trip1)
-                E_save_max[i] = E
-                is_notchs_max[i] = is_notch.copy()
+                E0 = get_frac_boundary(is_notch,tri,trip1)
+                E = E0
+                n_iter = 100000
+                E_save_max = np.zeros(n_iter)
+                is_notchs_max = np.zeros((n_iter,len(is_notch)),dtype=bool)
+                for i in range(n_iter):
+                    E,is_notch = perform_swap(E,is_notch,n_c,-0.001,tri,trip1)
+                    E_save_max[i] = E
+                    is_notchs_max[i] = is_notch.copy()
 
-            E_sets = np.linspace(E_save_max.min(),E_save_max.max(),N_set)
-            is_notch_sets = np.zeros((N_set,len(is_notch)),dtype=bool)
-            for i, E in enumerate(E_sets):
-                dE = (E_save_max-E)**2
-                idx = np.nonzero(dE == dE.min())[0][0]
-                is_notch_sets[i] = is_notchs_max[idx]
-            is_notch_set_list.append(is_notch_sets)
+                E_sets = np.linspace(E_save_max.min(),E_save_max.max(),N_set)
+                is_notch_sets = np.zeros((N_set,len(is_notch)),dtype=bool)
+                for i, E in enumerate(E_sets):
+                    dE = (E_save_max-E)**2
+                    idx = np.nonzero(dE == dE.min())[0][0]
+                    is_notch_sets[i] = is_notchs_max[idx]
+                is_notch_set_list.append(is_notch_sets)
+            else:
+                is_notch_sets = np.zeros((N_set,len(is_notch)),dtype=bool)
+                for i in range(N_set):
+                    is_notch_sets[i] = is_notch.copy()
+                is_notch_set_list.append(is_notch_sets)
+
         is_notch_set_list = np.array(is_notch_set_list)
         np.savez("../scan_initialisation/x_%d.npz" % (seed_index),sim.x_save[-1])
         np.savez("../scan_initialisation/is_notch_%d.npz" % (seed_index),is_notch_set_list)

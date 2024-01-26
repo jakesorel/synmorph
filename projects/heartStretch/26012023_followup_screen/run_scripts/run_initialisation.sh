@@ -8,8 +8,8 @@
 #SBATCH --partition=cpu
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=32G
-#SBATCH --output=../bash_out/error_initialisation.out
-#SBATCH --error=../bash_out/output_initialisation.out
+#SBATCH --output=../bash_out/output_initialisation.out
+#SBATCH --error=../bash_out/error_initialisation.out
 
 eval "$(conda shell.bash hook)"
 source activate synmorph
