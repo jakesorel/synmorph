@@ -208,7 +208,9 @@ if __name__ == "__main__":
 
     np.random.shuffle(range_to_sample)
     t_tot_0 = time.time()
-    Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
+    # Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
+    for i in range_to_sample:
+        run_job(i,True)
     t_tot_1 = time.time()
     print("simulations completed in ",t_tot_0-t_tot_0,"s")
     sys.exit(0)
