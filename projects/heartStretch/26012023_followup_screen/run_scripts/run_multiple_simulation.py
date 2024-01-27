@@ -69,6 +69,9 @@ def run_simulation(path_name,p_notch_idx,seed_idx,set_idx):
                         save_options=scan_dict["save_options"])
     sim.t.mesh.x = x.astype(np.float32)
     sim.grn.is_notch = is_notch.astype(bool)
+    sim.grn.set_true_params()
+    sim.grn.set_renormalised_params()
+    sim.grn.update_pressure()
     sim.simulate(progress_bar=False)
 
     skeleton_dict = {"c_types": sim.t.c_types,
@@ -208,12 +211,12 @@ if __name__ == "__main__":
 
     np.random.shuffle(range_to_sample)
     t_tot_0 = time.time()
-    # Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
-    for i in range_to_sample:
-        try:
-            run_job(i,True)
-        except:
-            print("run crashed, skipping")
+    Parallel(n_jobs=-1,backend="loky", prefer="threads")(delayed(run_job)(i,True) for i in range_to_sample)
+    # for i in range_to_sample:
+    #     try:
+    #         run_job(i,True)
+    #     except:
+    #         print("run crashed, skipping")
     t_tot_1 = time.time()
     print("simulations completed in ",t_tot_0-t_tot_0,"s")
     sys.exit(0)
