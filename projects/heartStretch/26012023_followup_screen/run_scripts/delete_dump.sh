@@ -13,4 +13,4 @@
 
 
 
-rsync -a --delete _dump/ dump/
+rsync -a --delete ../_dump/ ../dump/
